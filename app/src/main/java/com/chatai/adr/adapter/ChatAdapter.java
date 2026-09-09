@@ -28,6 +28,18 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.context = context;
     }
 
+    public interface OnMessageActionListener {
+        void onSpeak(ChatMessage message);
+        void onRegenerate(ChatMessage message, int position);
+        void onFeedback(ChatMessage message, boolean isLiked);
+    }
+
+    private OnMessageActionListener actionListener;
+
+    public void setOnMessageActionListener(OnMessageActionListener listener) {
+        this.actionListener = listener;
+    }
+
     public void setMessages(List<ChatMessage> newMessages) {
         messages.clear();
         if (newMessages != null) {
@@ -39,6 +51,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void addMessage(ChatMessage message) {
         messages.add(message);
         notifyItemInserted(messages.size() - 1);
+    }
+
+    public void updateMessageContent(int position, String newContent) {
+        if (position >= 0 && position < messages.size()) {
+            messages.get(position).setContent(newContent);
+            notifyItemChanged(position);
+        }
     }
 
     public void clearMessages() {
@@ -75,7 +94,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (holder instanceof UserViewHolder) {
             ((UserViewHolder) holder).bind(message);
         } else if (holder instanceof AiViewHolder) {
-            ((AiViewHolder) holder).bind(message, context);
+            ((AiViewHolder) holder).bind(message, position, context, actionListener);
         }
     }
 
@@ -104,18 +123,27 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private final TextView tvContent;
         private final TextView tvTime;
         private final ImageButton btnCopy;
+        private final ImageButton btnSpeak;
+        private final ImageButton btnRegenerate;
+        private final ImageButton btnLike;
+        private final ImageButton btnDislike;
 
         AiViewHolder(@NonNull View itemView) {
             super(itemView);
             tvContent = itemView.findViewById(R.id.tvAiContent);
             tvTime = itemView.findViewById(R.id.tvAiTime);
             btnCopy = itemView.findViewById(R.id.btnCopyAiMessage);
+            btnSpeak = itemView.findViewById(R.id.btnSpeakAiMessage);
+            btnRegenerate = itemView.findViewById(R.id.btnRegenerateAiMessage);
+            btnLike = itemView.findViewById(R.id.btnLikeAiMessage);
+            btnDislike = itemView.findViewById(R.id.btnDislikeAiMessage);
         }
 
-        void bind(ChatMessage message, Context context) {
+        void bind(ChatMessage message, int position, Context context, OnMessageActionListener listener) {
             tvContent.setText(message.getContent());
             tvTime.setText(message.getFormattedTime());
 
+            // Copy
             btnCopy.setOnClickListener(v -> {
                 ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clip = ClipData.newPlainText("AI Message", message.getContent());
@@ -124,6 +152,40 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show();
                 }
             });
+
+            // Speak (TTS)
+            if (btnSpeak != null) {
+                btnSpeak.setOnClickListener(v -> {
+                    if (listener != null) listener.onSpeak(message);
+                });
+            }
+
+            // Regenerate
+            if (btnRegenerate != null) {
+                btnRegenerate.setOnClickListener(v -> {
+                    if (listener != null) listener.onRegenerate(message, position);
+                });
+            }
+
+            // Like
+            if (btnLike != null) {
+                btnLike.setOnClickListener(v -> {
+                    btnLike.setColorFilter(android.graphics.Color.parseColor("#10B981")); // Green
+                    if (btnDislike != null) btnDislike.clearColorFilter();
+                    Toast.makeText(context, R.string.feedback_liked, Toast.LENGTH_SHORT).show();
+                    if (listener != null) listener.onFeedback(message, true);
+                });
+            }
+
+            // Dislike
+            if (btnDislike != null) {
+                btnDislike.setOnClickListener(v -> {
+                    btnDislike.setColorFilter(android.graphics.Color.parseColor("#EF4444")); // Red
+                    if (btnLike != null) btnLike.clearColorFilter();
+                    Toast.makeText(context, R.string.feedback_disliked, Toast.LENGTH_SHORT).show();
+                    if (listener != null) listener.onFeedback(message, false);
+                });
+            }
         }
     }
 }

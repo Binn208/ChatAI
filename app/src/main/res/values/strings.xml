@@ -25,4 +25,20 @@
     <string name="error_api_key_missing">Vui lòng cấu hình API Key trong mục Cài đặt (hoặc chọn chế độ Mock AI)</string>
     <string name="error_401">Lỗi xác thực (401): API Key không hợp lệ hoặc hết hạn</string>
     <string name="error_429">Lỗi tần suất (429): Quá nhiều yêu cầu, vui lòng thử lại sau vài giây</string>
+    <string name="action_new_chat">Cuộc trò chuyện mới</string>
+    <string name="action_regenerate">Trả lời lại</string>
+    <string name="action_speak">Đọc thành tiếng</string>
+    <string name="action_voice_input">Nói vào micro</string>
+    <string name="action_like">Hài lòng</string>
+    <string name="action_dislike">Chưa hài lòng</string>
+    <string name="suggestion_welcome_title">Hôm nay tôi có thể giúp gì cho bạn?</string>
+    <string name="suggestion_welcome_sub">Chọn một gợi ý nhanh hoặc gõ tin nhắn bên dưới</string>
+    <string name="suggestion_1">✉️ Viết email xin nghỉ phép chuyên nghiệp</string>
+    <string name="suggestion_2">💻 Giải thích 4 tính chất OOP trong Java</string>
+    <string name="suggestion_3">🌐 Dịch sang tiếng Việt: "Artificial Intelligence will reshape the future"</string>
+    <string name="suggestion_4">🧮 Tính: 15 * 8 và căn bậc 2 của 144</string>
+    <string name="tts_speaking">Đang phát giọng đọc…</string>
+    <string name="feedback_liked">Cảm ơn bạn đã gửi đánh giá tích cực! 👍</string>
+    <string name="feedback_disliked">Đã ghi nhận phản hồi để cải thiện! ✍️</string>
+    <string name="voice_listening">Đang nghe giọng nói của bạn…</string>
 </resources>

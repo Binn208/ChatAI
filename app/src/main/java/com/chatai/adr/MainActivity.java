@@ -1,7 +1,15 @@
 package com.chatai.adr;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -10,10 +18,12 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,21 +35,47 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerViewChat;
+    private ScrollView layoutEmptyState;
     private EditText edtMessage;
     private ImageButton btnSend;
+    private ImageButton btnVoiceInput;
+    private ImageButton btnNewChat;
     private ImageButton btnClearChat;
     private ImageButton btnSettings;
     private LinearLayout layoutTyping;
     private TextView tvActiveModel;
 
+    private LinearLayout btnSuggestion1;
+    private LinearLayout btnSuggestion2;
+    private LinearLayout btnSuggestion3;
+    private LinearLayout btnSuggestion4;
+
     private ChatAdapter chatAdapter;
     private ChatRepository chatRepository;
+    private TextToSpeech tts;
+
+    private final ActivityResultLauncher<Intent> voiceInputLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    ArrayList<String> spoken = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    if (spoken != null && !spoken.isEmpty()) {
+                        String text = spoken.get(0);
+                        edtMessage.setText(text);
+                        edtMessage.setSelection(text.length());
+                        handleSendMessage();
+                    }
+                }
+            }
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,18 +83,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initViews();
+        initTts();
         initData();
         setupEvents();
     }
 
     private void initViews() {
         recyclerViewChat = findViewById(R.id.recyclerViewChat);
+        layoutEmptyState = findViewById(R.id.layoutEmptyState);
         edtMessage = findViewById(R.id.edtMessage);
         btnSend = findViewById(R.id.btnSend);
+        btnVoiceInput = findViewById(R.id.btnVoiceInput);
+        btnNewChat = findViewById(R.id.btnNewChat);
         btnClearChat = findViewById(R.id.btnClearChat);
         btnSettings = findViewById(R.id.btnSettings);
         layoutTyping = findViewById(R.id.layoutTyping);
         tvActiveModel = findViewById(R.id.tvActiveModel);
+
+        btnSuggestion1 = findViewById(R.id.btnSuggestion1);
+        btnSuggestion2 = findViewById(R.id.btnSuggestion2);
+        btnSuggestion3 = findViewById(R.id.btnSuggestion3);
+        btnSuggestion4 = findViewById(R.id.btnSuggestion4);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
@@ -68,23 +113,33 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewChat.setAdapter(chatAdapter);
     }
 
+    private void initTts() {
+        tts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                tts.setLanguage(new Locale("vi", "VN"));
+            }
+        });
+    }
+
     private void initData() {
         chatRepository = new ChatRepository(this);
-
         updateActiveModelBadge();
 
         List<ChatMessage> history = chatRepository.loadChatHistory();
         if (history.isEmpty()) {
-            addAiMessage(getString(R.string.welcome_message));
+            updateEmptyStateVisibility();
         } else {
             chatAdapter.setMessages(history);
+            updateEmptyStateVisibility();
             scrollToBottom();
         }
     }
 
     private void setupEvents() {
+        // Send button
         btnSend.setOnClickListener(v -> handleSendMessage());
 
+        // Editor Action
         edtMessage.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEND) {
                 handleSendMessage();
@@ -93,9 +148,108 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
+        // TextWatcher to disable send when empty
+        edtMessage.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                boolean hasText = s != null && s.toString().trim().length() > 0;
+                btnSend.setEnabled(hasText);
+                btnSend.setAlpha(hasText ? 1.0f : 0.4f);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // Voice Input
+        btnVoiceInput.setOnClickListener(v -> startVoiceRecognition());
+
+        // New Chat
+        btnNewChat.setOnClickListener(v -> startNewChat());
+
+        // Clear Chat
         btnClearChat.setOnClickListener(v -> showClearConfirmationDialog());
 
+        // Settings
         btnSettings.setOnClickListener(v -> showSettingsDialog());
+
+        // Suggestion Chips
+        if (btnSuggestion1 != null) {
+            btnSuggestion1.setOnClickListener(v -> sendMessageWithText(getString(R.string.suggestion_1)));
+        }
+        if (btnSuggestion2 != null) {
+            btnSuggestion2.setOnClickListener(v -> sendMessageWithText(getString(R.string.suggestion_2)));
+        }
+        if (btnSuggestion3 != null) {
+            btnSuggestion3.setOnClickListener(v -> sendMessageWithText(getString(R.string.suggestion_3)));
+        }
+        if (btnSuggestion4 != null) {
+            btnSuggestion4.setOnClickListener(v -> sendMessageWithText(getString(R.string.suggestion_4)));
+        }
+
+        // Adapter Action Listeners
+        chatAdapter.setOnMessageActionListener(new ChatAdapter.OnMessageActionListener() {
+            @Override
+            public void onSpeak(ChatMessage message) {
+                if (tts != null && message.getContent() != null) {
+                    Toast.makeText(MainActivity.this, R.string.tts_speaking, Toast.LENGTH_SHORT).show();
+                    tts.speak(message.getContent(), TextToSpeech.QUEUE_FLUSH, null, "AI_TTS");
+                }
+            }
+
+            @Override
+            public void onRegenerate(ChatMessage message, int position) {
+                String prompt = findPrecedingUserPrompt(position);
+                if (prompt != null) {
+                    sendMessageWithText(prompt);
+                } else {
+                    Toast.makeText(MainActivity.this, "Không tìm thấy câu hỏi trước đó để tạo lại.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFeedback(ChatMessage message, boolean isLiked) {
+                // Handled in adapter with toast and color indicator
+            }
+        });
+    }
+
+    private void updateEmptyStateVisibility() {
+        if (chatAdapter.getItemCount() == 0) {
+            layoutEmptyState.setVisibility(View.VISIBLE);
+            recyclerViewChat.setVisibility(View.GONE);
+        } else {
+            layoutEmptyState.setVisibility(View.GONE);
+            recyclerViewChat.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void startNewChat() {
+        chatAdapter.clearMessages();
+        chatRepository.clearHistory();
+        updateEmptyStateVisibility();
+        Toast.makeText(this, "Đã tạo phiên trò chuyện mới!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void startVoiceRecognition() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "vi-VN");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_listening));
+        try {
+            voiceInputLauncher.launch(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Thiết bị không hỗ trợ nhận diện giọng nói: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void sendMessageWithText(String content) {
+        if (TextUtils.isEmpty(content)) return;
+        edtMessage.setText(content);
+        handleSendMessage();
     }
 
     private void handleSendMessage() {
@@ -109,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
         ChatMessage userMsg = new ChatMessage(UUID.randomUUID().toString(), content, ChatMessage.TYPE_USER);
         chatAdapter.addMessage(userMsg);
         edtMessage.setText("");
+        updateEmptyStateVisibility();
         scrollToBottom();
 
         // Show typing indicator
@@ -119,8 +274,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String response) {
                 setTyping(false);
-                addAiMessage(response);
-                chatRepository.saveChatHistory(chatAdapter.getMessages());
+                streamAiMessage(response);
             }
 
             @Override
@@ -132,17 +286,70 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Typewriter Streaming text effect for smooth ChatGPT-like output
+     */
+    private void streamAiMessage(String fullResponse) {
+        if (fullResponse == null) fullResponse = "";
+        ChatMessage aiMsg = new ChatMessage(UUID.randomUUID().toString(), "", ChatMessage.TYPE_AI);
+        chatAdapter.addMessage(aiMsg);
+        int position = chatAdapter.getItemCount() - 1;
+        updateEmptyStateVisibility();
+        scrollToBottom();
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        final String textToStream = fullResponse;
+        final int[] index = {0};
+        final int step = Math.max(2, textToStream.length() / 40); // Dynamic step for smooth pacing
+        final StringBuilder current = new StringBuilder();
+
+        Runnable typewriter = new Runnable() {
+            @Override
+            public void run() {
+                if (index[0] < textToStream.length()) {
+                    int next = Math.min(index[0] + step, textToStream.length());
+                    current.append(textToStream.substring(index[0], next));
+                    index[0] = next;
+                    chatAdapter.updateMessageContent(position, current.toString());
+                    scrollToBottom();
+                    handler.postDelayed(this, 20);
+                } else {
+                    chatAdapter.updateMessageContent(position, textToStream);
+                    chatRepository.saveChatHistory(chatAdapter.getMessages());
+                    scrollToBottom();
+                }
+            }
+        };
+        handler.post(typewriter);
+    }
+
     private void addAiMessage(String content) {
         ChatMessage aiMsg = new ChatMessage(UUID.randomUUID().toString(), content, ChatMessage.TYPE_AI);
         chatAdapter.addMessage(aiMsg);
+        updateEmptyStateVisibility();
         scrollToBottom();
+    }
+
+    private String findPrecedingUserPrompt(int aiMessagePosition) {
+        List<ChatMessage> list = chatAdapter.getMessages();
+        for (int i = aiMessagePosition - 1; i >= 0; i--) {
+            if (list.get(i).getSenderType() == ChatMessage.TYPE_USER) {
+                return list.get(i).getContent();
+            }
+        }
+        return null;
     }
 
     private void setTyping(boolean isTyping) {
         layoutTyping.setVisibility(isTyping ? View.VISIBLE : View.GONE);
-        btnSend.setEnabled(!isTyping);
         if (isTyping) {
+            btnSend.setEnabled(false);
+            btnSend.setAlpha(0.4f);
             scrollToBottom();
+        } else {
+            boolean hasText = edtMessage.getText() != null && edtMessage.getText().toString().trim().length() > 0;
+            btnSend.setEnabled(hasText);
+            btnSend.setAlpha(hasText ? 1.0f : 0.4f);
         }
     }
 
@@ -169,9 +376,7 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle(R.string.dialog_clear_title)
                 .setMessage(R.string.dialog_clear_msg)
                 .setPositiveButton(R.string.action_confirm, (dialog, which) -> {
-                    chatAdapter.clearMessages();
-                    chatRepository.clearHistory();
-                    addAiMessage(getString(R.string.welcome_message));
+                    startNewChat();
                 })
                 .setNegativeButton(R.string.action_cancel, null)
                 .show();
@@ -240,5 +445,14 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setNegativeButton(R.string.action_cancel, null)
                 .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
     }
 }

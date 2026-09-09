@@ -56,13 +56,58 @@
                 android:textColor="@color/ai_timestamp"
                 android:textSize="10.5sp" />
 
+            <!-- Text-to-Speech Button -->
+            <ImageButton
+                android:id="@+id/btnSpeakAiMessage"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_speak"
+                android:padding="5dp"
+                android:src="@drawable/ic_volume" />
+
+            <!-- Regenerate Button -->
+            <ImageButton
+                android:id="@+id/btnRegenerateAiMessage"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_regenerate"
+                android:padding="5dp"
+                android:src="@drawable/ic_refresh" />
+
+            <!-- Thumbs Up Button -->
+            <ImageButton
+                android:id="@+id/btnLikeAiMessage"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_like"
+                android:padding="5dp"
+                android:src="@drawable/ic_thumb_up" />
+
+            <!-- Thumbs Down Button -->
+            <ImageButton
+                android:id="@+id/btnDislikeAiMessage"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_dislike"
+                android:padding="5dp"
+                android:src="@drawable/ic_thumb_down" />
+
+            <!-- Copy Button -->
             <ImageButton
                 android:id="@+id/btnCopyAiMessage"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/action_copy"
-                android:padding="4dp"
+                android:padding="5dp"
                 android:src="@drawable/ic_copy" />
         </LinearLayout>
 
