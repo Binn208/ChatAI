@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Chat AI Android</string>
+    <string name="hint_input_message">Nhập tin nhắn cho AI…</string>
+    <string name="action_send">Gửi</string>
+    <string name="action_settings">Cài đặt</string>
+    <string name="action_clear">Xóa lịch sử</string>
+    <string name="action_copy">Sao chép</string>
+    <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
+    <string name="typing_indicator">AI đang suy nghĩ…</string>
+    <string name="settings_title">Cài đặt API AI</string>
+    <string name="label_provider">Chọn Nhà Cung Cấp:</string>
+    <string name="label_api_key">API Key:</string>
+    <string name="hint_api_key">Nhập API Key (Gemini hoặc OpenAI)…</string>
+    <string name="label_model">Mã Model:</string>
+    <string name="label_system_prompt">Lời nhắc hệ thống (System Prompt):</string>
+    <string name="default_system_prompt">Bạn là một trợ lý AI thông minh, nhiệt tình, hữu ích và trả lời bằng tiếng Việt chuẩn xác.</string>
+    <string name="action_save">Lưu Cấu Hình</string>
+    <string name="action_cancel">Hủy</string>
+    <string name="dialog_clear_title">Xóa cuộc trò chuyện?</string>
+    <string name="dialog_clear_msg">Toàn bộ tin nhắn trong phiên này sẽ bị xóa. Bạn có chắc không?</string>
+    <string name="action_confirm">Đồng ý</string>
+    <string name="welcome_message">Xin chào! Tôi là trợ lý Chat AI. Hãy đặt câu hỏi hoặc yêu cầu bất cứ điều gì!</string>
+    <string name="error_empty_message">Vui lòng nhập nội dung tin nhắn</string>
+    <string name="error_network">Lỗi kết nối mạng: Không thể liên hệ với máy chủ AI</string>
+    <string name="error_api_key_missing">Vui lòng cấu hình API Key trong mục Cài đặt (hoặc chọn chế độ Mock AI)</string>
+    <string name="error_401">Lỗi xác thực (401): API Key không hợp lệ hoặc hết hạn</string>
+    <string name="error_429">Lỗi tần suất (429): Quá nhiều yêu cầu, vui lòng thử lại sau vài giây</string>
+</resources>
