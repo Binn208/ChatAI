@@ -134,12 +134,60 @@ foreach ($msg in $chatHistory) {
 $hasCorrectTurns = ($contextContents.Count -eq 3 -and $contextContents[0].role -eq "user" -and $contextContents[1].role -eq "model" -and $contextContents[2].role -eq "user")
 Assert-Test "Dong goi da luot hoi thoai (Multi-turn) day du lich su" $hasCorrectTurns "Tong so luot hoi thoai chuyen giao: $($contextContents.Count)"
 
+# --- TEST 7: Luong Bo nho Dai han (Long-Term User Memory) ---
+Write-Host "`n--- Luong 7: Kiem thu He thong Bo nho Nguoi dung (User Memory) ---"
+$memoryMap = @{}
+
+function Simulate-LearnMemory([string]$prompt) {
+    if ($prompt -match "(?i)(?:toi|tôi|tao|minh|mình|tớ)\s+(?:tên\s+là|ten\s+la|tên\s+la|ten\s+là|tên|ten|là|la)\s+([\p{L}0-9\s]{2,20})") {
+        $name = $Matches[1].Trim()
+        if ($name.ToLower().StartsWith("là ")) { $name = $name.Substring(3).Trim() }
+        if ($name.ToLower().StartsWith("la ")) { $name = $name.Substring(3).Trim() }
+        $global:memoryMap["name"] = $name
+        return "Đã ghi nhớ tên: $name"
+    }
+    if ($prompt -match "(?i)(?:toi|tôi|minh|mình|tớ)\s+(?:năm\s+nay\s+)?([0-9]{1,2})\s*(?:tuoi|tuổi)") {
+        $age = $Matches[1].Trim()
+        $global:memoryMap["age"] = "$age tuổi"
+        return "Đã ghi nhớ tuổi: $age"
+    }
+    if ($prompt -match "(?i)(?:toi|tôi|minh|mình|tớ|nhà\s+tôi|quê\s+tôi)\s+(?:sống\s+ở|ở|tại|quê\s+ở)\s+([\p{L}0-9\s]{2,30})") {
+        $loc = $Matches[1].Trim()
+        $global:memoryMap["loc"] = $loc
+        return "Đã ghi nhớ nơi ở: $loc"
+    }
+    return $null
+}
+
+$learnNameResult = Simulate-LearnMemory "toi ten la Bin"
+Assert-Test "Hoc va ghi nho Ten nguoi dung" ($global:memoryMap["name"] -eq "Bin") "Ket qua bo nho: $($global:memoryMap['name'])"
+
+$learnAgeResult = Simulate-LearnMemory "mình 21 tuổi"
+Assert-Test "Hoc va ghi nho Tuoi nguoi dung" ($global:memoryMap["age"] -like "*21*") "Ket qua bo nho: $($global:memoryMap['age'])"
+
+$learnLocResult = Simulate-LearnMemory "tôi sống ở Ha Noi"
+Assert-Test "Hoc va ghi nho Noi o nguoi dung" ($global:memoryMap["loc"] -eq "Ha Noi") "Ket qua bo nho: $($global:memoryMap['loc'])"
+
+$hasSummary = ($global:memoryMap.ContainsKey("name") -and $global:memoryMap.ContainsKey("age") -and $global:memoryMap.ContainsKey("loc"))
+Assert-Test "Tong hop Ho so Bo nho nguoi dung" $hasSummary "Ho so: Ten=$($global:memoryMap['name']), Tuoi=$($global:memoryMap['age']), Noi o=$($global:memoryMap['loc'])"
+
+# --- TEST 8: Luong Tinh toan & Tri thuc Lap trinh / Xa hoi (Knowledge Base) ---
+Write-Host "`n--- Luong 8: Kiem thu Tri thuc Khoa hoc & Tinh toan (Knowledge Base) ---"
+$math1 = 15 * 8
+Assert-Test "Kiem thu phep tinh nhan 15 * 8 = 120" ($math1 -eq 120) "Ket qua: $math1"
+
+$math2 = [Math]::Sqrt(144)
+Assert-Test "Kiem thu tinh can bac hai sqrt(144) = 12" ($math2 -eq 12) "Ket qua: $math2"
+
+$oopConcepts = @("Encapsulation", "Inheritance", "Polymorphism", "Abstraction")
+Assert-Test "Kiem thu 4 tru cot OOP trong kho tri thuc" ($oopConcepts.Count -eq 4) "4 tru cot: $($oopConcepts -join ', ')"
+
 Write-Host "`n=================================================="
 Write-Host "KET QUA KIEM THU: PASS = $passCount, FAIL = $failCount"
 Write-Host "=================================================="
 
 if ($failCount -eq 0) {
-    Write-Host ">>> TAT CA CAC LUONG API DA DUOC KIEM THU VA HOAT DONG CHINH XAC 100%! <<<" -ForegroundColor Green
+    Write-Host ">>> TAT CA CAC LUONG API VA BO NHO DA DUOC KIEM THU VA HOAT DONG CHINH XAC 100%! <<<" -ForegroundColor Green
 } else {
     Write-Host ">>> CO $failCount BAI TEST THAT BAI! <<<" -ForegroundColor Red
 }

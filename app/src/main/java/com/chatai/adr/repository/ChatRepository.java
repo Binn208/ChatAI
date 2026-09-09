@@ -46,6 +46,7 @@ public class ChatRepository {
     private final SharedPreferences prefs;
     private final Gson gson;
     private final Handler mainHandler;
+    private final UserMemoryManager userMemoryManager;
 
     private GeminiApiService geminiService;
     private OpenAiApiService openAiService;
@@ -59,6 +60,7 @@ public class ChatRepository {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         this.gson = new Gson();
         this.mainHandler = new Handler(Looper.getMainLooper());
+        this.userMemoryManager = new UserMemoryManager(context);
         initNetworkClients();
     }
 
@@ -116,11 +118,19 @@ public class ChatRepository {
     }
 
     public String getSystemPrompt() {
-        return prefs.getString(KEY_SYSTEM_PROMPT, "Bạn là một trợ lý AI thông minh, nhiệt tình, hữu ích và trả lời bằng tiếng Việt chuẩn xác.");
+        String base = prefs.getString(KEY_SYSTEM_PROMPT, "Bạn là một trợ lý AI thông minh, nhiệt tình, hữu ích và trả lời bằng tiếng Việt chuẩn xác.");
+        if (userMemoryManager != null && userMemoryManager.hasAnyMemory()) {
+            base += "\n\n" + userMemoryManager.getMemorySummary();
+        }
+        return base;
     }
 
     public void setSystemPrompt(String prompt) {
         prefs.edit().putString(KEY_SYSTEM_PROMPT, prompt).apply();
+    }
+
+    public UserMemoryManager getUserMemoryManager() {
+        return userMemoryManager;
     }
 
     // Save chat history
@@ -155,10 +165,15 @@ public class ChatRepository {
         if (PROVIDER_MOCK.equalsIgnoreCase(provider)) {
             // Simulate network delay of 700ms for realistic chat feel
             mainHandler.postDelayed(() -> {
-                String reply = MockAiEngine.generateResponse(userMessage, history);
+                String reply = MockAiEngine.generateResponse(userMessage, history, userMemoryManager);
                 callback.onSuccess(reply);
             }, 700);
             return;
+        }
+
+        // Auto learn memory from user prompt even when using Gemini / OpenAI
+        if (userMemoryManager != null) {
+            userMemoryManager.analyzeAndLearn(userMessage);
         }
 
         if (apiKey == null || apiKey.trim().isEmpty()) {
