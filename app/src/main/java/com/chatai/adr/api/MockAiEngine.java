@@ -35,23 +35,27 @@ public class MockAiEngine {
         // ==========================================
         // 2. TRUY VẤN BỘ NHỚ (USER MEMORY INQUIRIES)
         // ==========================================
-        if (lower.contains("nhớ gì về tôi") || lower.contains("thông tin của tôi") || lower.contains("bộ nhớ của bạn")
-                || lower.contains("bộ nhớ") || lower.contains("hồ sơ của tôi") || lower.contains("bạn biết gì về tôi")) {
+        if (lower.contains("nhớ gì về tôi") || lower.contains("nho gi ve toi") || lower.contains("thông tin của tôi")
+                || lower.contains("thong tin cua toi") || lower.contains("bộ nhớ") || lower.contains("bo nho")
+                || lower.contains("hồ sơ của tôi") || lower.contains("ho so cua toi") || lower.contains("bạn biết gì về tôi")) {
             if (memory != null) {
                 return memory.getMemorySummary();
             }
         }
 
-        if (lower.contains("tôi tên") || lower.contains("toi ten") || lower.contains("tên của tôi") || lower.contains("tên tôi")) {
+        if (lower.contains("tôi tên") || lower.contains("toi ten") || lower.contains("tên của tôi") || lower.contains("ten cua toi")
+                || lower.contains("tên tôi") || lower.contains("ten toi") || lower.contains("tôi là ai") || lower.contains("toi la ai")
+                || lower.contains("tên mình") || lower.contains("ten minh") || lower.contains("tớ tên") || lower.contains("to ten")) {
             String name = (memory != null) ? memory.getName() : null;
             if (name != null) {
                 return "😊 Bạn tên là **" + name + "**! Tôi nhớ rất rõ và không bao giờ quên đâu nhé.";
             } else {
-                return "Bạn chưa giới thiệu tên với tôi! Hãy nhắn cho tôi theo dạng: *\"Tôi tên là...\"* để tôi ghi nhớ nhé.";
+                return "Bạn chưa giới thiệu tên với tôi! Hãy nhắn cho tôi theo dạng: *\"Tôi tên là...\"* hoặc *\"toi ten la...\"* để tôi ghi nhớ nhé.";
             }
         }
 
-        if (lower.contains("tôi bao nhiêu tuổi") || lower.contains("tuổi của tôi") || lower.contains("tôi sinh năm")) {
+        if (lower.contains("tôi bao nhiêu tuổi") || lower.contains("toi bao nhieu tuoi") || lower.contains("tuổi của tôi")
+                || lower.contains("tuoi cua toi") || lower.contains("tôi sinh năm") || lower.contains("toi sinh nam")) {
             String age = (memory != null) ? memory.getAge() : null;
             if (age != null) {
                 return "🎂 Theo thông tin bạn chia sẻ, bạn **" + age + "**!";
@@ -60,7 +64,9 @@ public class MockAiEngine {
             }
         }
 
-        if (lower.contains("tôi sống ở đâu") || lower.contains("nhà tôi ở đâu") || lower.contains("quê tôi ở đâu") || lower.contains("nơi ở của tôi")) {
+        if (lower.contains("tôi sống ở đâu") || lower.contains("toi song o dau") || lower.contains("nhà tôi ở đâu")
+                || lower.contains("nha toi o dau") || lower.contains("quê tôi ở đâu") || lower.contains("que toi o dau")
+                || lower.contains("nơi ở của tôi") || lower.contains("noi o cua toi")) {
             String loc = (memory != null) ? memory.getLocation() : null;
             if (loc != null) {
                 return "🏡 Nơi ở / quê quán của bạn là tại: **" + loc + "**.";
@@ -69,21 +75,24 @@ public class MockAiEngine {
             }
         }
 
-        if (lower.contains("tôi học gì") || lower.contains("nghề nghiệp của tôi") || lower.contains("tôi làm nghề gì") || lower.contains("ngành của tôi")) {
+        if (lower.contains("tôi học gì") || lower.contains("toi hoc gi") || lower.contains("nghề nghiệp của tôi")
+                || lower.contains("nghe nghiep cua toi") || lower.contains("tôi làm nghề gì") || lower.contains("toi lam nghe gi")
+                || lower.contains("ngành của tôi") || lower.contains("nganh cua toi")) {
             String job = (memory != null) ? memory.getJob() : null;
             if (job != null) {
                 return "🎓 Ngành học / nghề nghiệp của bạn là: **" + job + "**.";
             } else {
-                return "Tôi chưa biết ngành nghề của bạn. Hãy nói cho tôi biết (ví dụ: *\"Tôi học CNTT\"*) nhé!";
+                return "Tôi chưa biết ngành nghề của bạn. Hãy chia sẻ (ví dụ: *\"Tôi học CNTT\"*) nhé!";
             }
         }
 
-        if (lower.contains("tôi thích gì") || lower.contains("sở thích của tôi") || lower.contains("tôi mê gì")) {
+        if (lower.contains("sở thích của tôi") || lower.contains("so thich cua toi") || lower.contains("tôi thích gì")
+                || lower.contains("toi thich gi") || lower.contains("sở thích của mình") || lower.contains("tôi mê gì")) {
             String hobby = (memory != null) ? memory.getHobby() : null;
             if (hobby != null) {
                 return "⚽ Sở thích của bạn là: **" + hobby + "**!";
             } else {
-                return "Tôi chưa biết sở thích của bạn! Hãy chia sẻ với tôi (ví dụ: *\"Tôi thích chơi game và nghe nhạc\"*) nhé!";
+                return "Tôi chưa biết sở thích của bạn. Hãy chia sẻ (ví dụ: *\"Tôi thích đá bóng\"*) nhé!";
             }
         }
 

@@ -77,30 +77,42 @@ public class UserMemoryManager {
         if (prompt == null || prompt.trim().isEmpty()) return null;
         String raw = prompt.trim();
 
-        // 1. Học Tên: "tôi tên là bin", "toi ten bin", "mình tên an", "tớ là nam"
-        Pattern pName = Pattern.compile("(?:tôi|toi|tao|minh|mình|tớ)\\s+(?:tên\\s+là|ten\\s+la|tên\\s+la|ten\\s+là|tên|ten|là|la)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
-        Matcher mName = pName.matcher(raw);
+        // 1. Học Tên: "tôi tên là bin", "toi ten la bin", "toi ten minh", "tên tôi là bin", "ten toi la bin", "goi toi la bin"
+        Pattern pName1 = Pattern.compile("(?:tôi|toi|tao|minh|mình|tớ|to)\\s+(?:tên\\s+là|ten\\s+la|tên\\s+la|ten\\s+là|tên|ten|là|la)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
+        Pattern pName2 = Pattern.compile("(?:tên|ten)(?:\\s+(?:của|cua))?\\s+(?:tôi|toi|mình|minh|tớ|to)\\s+(?:là|la)?\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
+        Pattern pName3 = Pattern.compile("(?:gọi|goi)\\s+(?:tôi|toi|mình|minh|tớ|to)\\s+(?:là|la)?\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
+
+        Matcher mName = pName1.matcher(raw);
+        if (!mName.find()) mName = pName2.matcher(raw);
+        if (!mName.find()) mName = pName3.matcher(raw);
+
         if (mName.find()) {
             String extracted = mName.group(1).trim();
             if (extracted.toLowerCase().startsWith("là ")) extracted = extracted.substring(3).trim();
             if (extracted.toLowerCase().startsWith("la ")) extracted = extracted.substring(3).trim();
-            // Tránh bắt nhầm các từ như "người", "sinh viên", "học sinh"
-            if (!extracted.equalsIgnoreCase("người") && !extracted.equalsIgnoreCase("sinh viên") && !extracted.equalsIgnoreCase("học sinh")) {
+            String extLower = extracted.toLowerCase();
+
+            // Nếu câu là câu hỏi ("gì", "gi", "ai", "nào", "nao") thì KHÔNG lưu là tên
+            boolean isQuestion = extLower.equals("gì") || extLower.equals("gi") || extLower.contains("gì thế")
+                    || extLower.contains("gi the") || extLower.equals("ai") || extLower.contains("nào") || extLower.contains("nao");
+            boolean isStopWord = extLower.equals("người") || extLower.equals("nguoi") || extLower.equals("sinh viên") || extLower.equals("học sinh");
+
+            if (!isQuestion && !isStopWord && extracted.length() >= 2) {
                 setName(extracted);
                 return "Đã ghi nhớ tên của bạn là: " + extracted;
             }
         }
 
-        // 2. Học Tuổi: "tôi 20 tuổi", "mình 22 tuổi", "tôi sinh năm 2004"
-        Pattern pAge = Pattern.compile("(?:tôi|mình|tớ)\\s+(?:năm\\s+nay\\s+)?([0-9]{1,2})\\s*tuổi", Pattern.CASE_INSENSITIVE);
+        // 2. Học Tuổi: "tôi 20 tuổi", "toi 20 tuoi", "mình 22 tuổi", "tôi sinh năm 2004"
+        Pattern pAge = Pattern.compile("(?:tôi|toi|mình|minh|tớ|to)\\s+(?:năm\\s+nay\\s+)?([0-9]{1,2})\\s*(?:tuổi|tuoi)", Pattern.CASE_INSENSITIVE);
         Matcher mAge = pAge.matcher(raw);
         if (mAge.find()) {
             String age = mAge.group(1).trim();
-            setAge(age);
+            setAge(age + " tuổi");
             return "Đã ghi nhớ bạn " + age + " tuổi";
         }
 
-        Pattern pBirthYear = Pattern.compile("(?:tôi|mình|tớ)\\s+sinh\\s+năm\\s+([0-9]{4})", Pattern.CASE_INSENSITIVE);
+        Pattern pBirthYear = Pattern.compile("(?:tôi|toi|mình|minh|tớ|to)\\s+(?:sinh\\s+năm|sinh\\s+nam)\\s+([0-9]{4})", Pattern.CASE_INSENSITIVE);
         Matcher mBirth = pBirthYear.matcher(raw);
         if (mBirth.find()) {
             String year = mBirth.group(1).trim();
@@ -108,32 +120,37 @@ public class UserMemoryManager {
             return "Đã ghi nhớ bạn sinh năm " + year;
         }
 
-        // 3. Học Nơi ở / Quê quán: "tôi sống ở hà nội", "nhà tôi ở sài gòn", "quê tôi ở nam định"
-        Pattern pLoc = Pattern.compile("(?:tôi|mình|tớ|nhà\\s+tôi|quê\\s+tôi)\\s+(?:sống\\s+ở|ở|tại|quê\\s+ở)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,30})", Pattern.CASE_INSENSITIVE);
+        // 3. Học Nơi ở / Quê quán: "tôi sống ở hà nội", "toi o ha noi", "nhà tôi ở sài gòn"
+        Pattern pLoc = Pattern.compile("(?:tôi|toi|mình|minh|tớ|to|nhà\\s+tôi|nha\\s+toi|quê\\s+tôi|que\\s+toi)\\s+(?:sống\\s+ở|song\\s+o|ở|o|tại|tai|quê\\s+ở|que\\s+o)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,30})", Pattern.CASE_INSENSITIVE);
         Matcher mLoc = pLoc.matcher(raw);
         if (mLoc.find()) {
             String loc = mLoc.group(1).trim();
-            setLocation(loc);
-            return "Đã ghi nhớ nơi ở / quê quán của bạn là: " + loc;
+            String locLower = loc.toLowerCase();
+            if (!locLower.contains("đâu") && !locLower.contains("dau") && !locLower.contains("nào") && !locLower.contains("nao")) {
+                setLocation(loc);
+                return "Đã ghi nhớ nơi ở / quê quán của bạn là: " + loc;
+            }
         }
 
-        // 4. Học Nghề nghiệp / Ngành học: "tôi học cntt", "tôi là lập trình viên", "tôi làm kế toán"
-        Pattern pJob = Pattern.compile("(?:tôi|mình|tớ)\\s+(?:học|làm\\s+nghề|làm|ngành)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,30})", Pattern.CASE_INSENSITIVE);
+        // 4. Học Nghề nghiệp / Ngành học: "tôi học cntt", "tôi làm lập trình viên", "toi lam dev"
+        Pattern pJob = Pattern.compile("(?:tôi|toi|mình|minh|tớ|to)\\s+(?:học|hoc|làm\\s+nghề|lam\\s+nghe|làm|lam|ngành|nganh)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,30})", Pattern.CASE_INSENSITIVE);
         Matcher mJob = pJob.matcher(raw);
         if (mJob.find()) {
             String job = mJob.group(1).trim();
-            if (!job.equalsIgnoreCase("được") && !job.equalsIgnoreCase("tên")) {
+            String jobLower = job.toLowerCase();
+            if (!jobLower.contains("được") && !jobLower.contains("duoc") && !jobLower.contains("tên") && !jobLower.contains("ten") && !jobLower.contains("gì") && !jobLower.contains("gi")) {
                 setJob(job);
                 return "Đã ghi nhớ ngành nghề của bạn là: " + job;
             }
         }
 
-        // 5. Học Sở thích: "tôi thích đá bóng", "sở thích của tôi là chơi game", "mình mê nghe nhạc"
-        Pattern pHobby = Pattern.compile("(?:tôi|mình|tớ|sở\\s+thích\\s+của\\s+tôi)\\s+(?:thích|mê|khoái|là)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,40})", Pattern.CASE_INSENSITIVE);
+        // 5. Học Sở thích: "tôi thích đá bóng", "toi thich choi game", "mình mê nghe nhạc"
+        Pattern pHobby = Pattern.compile("(?:tôi|toi|mình|minh|tớ|to|sở\\s+thích\\s+của\\s+tôi|so\\s+thich\\s+cua\\s+toi)\\s+(?:thích|thich|mê|me|khoái|khoai|là|la)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,40})", Pattern.CASE_INSENSITIVE);
         Matcher mHobby = pHobby.matcher(raw);
         if (mHobby.find()) {
             String hobby = mHobby.group(1).trim();
-            if (!hobby.contains("gì") && !hobby.contains("ai")) {
+            String hLower = hobby.toLowerCase();
+            if (!hLower.contains("gì") && !hLower.contains("gi") && !hLower.contains("ai")) {
                 setHobby(hobby);
                 return "Đã ghi nhớ sở thích của bạn là: " + hobby;
             }
