@@ -97,35 +97,54 @@ public class CodeFormatterUtil {
      */
     public static CharSequence formatInlineMarkdown(String text) {
         if (text == null) return "";
-        SpannableStringBuilder builder = new SpannableStringBuilder(text);
+        try {
+            SpannableStringBuilder builder = new SpannableStringBuilder();
+            
+            // Xử lý Bold **...** và inline code `...` đơn giản an toàn
+            String[] lines = text.split("\n");
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                int cur = 0;
+                while (cur < line.length()) {
+                    int nextBold = line.indexOf("**", cur);
+                    int nextCode = line.indexOf("`", cur);
 
-        // 1. Process Bold **text**
-        Matcher boldMatcher = BOLD_PATTERN.matcher(builder);
-        while (boldMatcher.find()) {
-            int start = boldMatcher.start();
-            int end = boldMatcher.end();
-            String inner = boldMatcher.group(1);
-            builder.replace(start, end, inner);
-            builder.setSpan(new StyleSpan(Typeface.BOLD), start, start + inner.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            boldMatcher = BOLD_PATTERN.matcher(builder); // reset after replace
+                    if (nextBold != -1 && (nextCode == -1 || nextBold < nextCode)) {
+                        int closingBold = line.indexOf("**", nextBold + 2);
+                        if (closingBold != -1) {
+                            builder.append(line.substring(cur, nextBold));
+                            int startSpan = builder.length();
+                            builder.append(line.substring(nextBold + 2, closingBold));
+                            builder.setSpan(new StyleSpan(Typeface.BOLD), startSpan, builder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            cur = closingBold + 2;
+                            continue;
+                        }
+                    } else if (nextCode != -1) {
+                        int closingCode = line.indexOf("`", nextCode + 1);
+                        if (closingCode != -1) {
+                            builder.append(line.substring(cur, nextCode));
+                            int startSpan = builder.length();
+                            builder.append(line.substring(nextCode + 1, closingCode));
+                            int endSpan = builder.length();
+                            builder.setSpan(new TypefaceSpan("monospace"), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            builder.setSpan(new BackgroundColorSpan(Color.parseColor("#E2E8F0")), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            builder.setSpan(new ForegroundColorSpan(Color.parseColor("#BE185D")), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            cur = closingCode + 1;
+                            continue;
+                        }
+                    }
+
+                    builder.append(line.substring(cur));
+                    break;
+                }
+                if (i < lines.length - 1) {
+                    builder.append("\n");
+                }
+            }
+            return builder;
+        } catch (Exception e) {
+            return text;
         }
-
-        // 2. Process Inline code `code`
-        Matcher inlineMatcher = INLINE_CODE_PATTERN.matcher(builder);
-        while (inlineMatcher.find()) {
-            int start = inlineMatcher.start();
-            int end = inlineMatcher.end();
-            String inner = inlineMatcher.group(1);
-            builder.replace(start, end, inner);
-            int newEnd = start + inner.length();
-            builder.setSpan(new TypefaceSpan("monospace"), start, newEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.setSpan(new BackgroundColorSpan(Color.parseColor("#E2E8F0")), start, newEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.setSpan(new ForegroundColorSpan(Color.parseColor("#BE185D")), start, newEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.setSpan(new RelativeSizeSpan(0.92f), start, newEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            inlineMatcher = INLINE_CODE_PATTERN.matcher(builder);
-        }
-
-        return builder;
     }
 
     /**

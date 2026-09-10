@@ -114,6 +114,13 @@ public class MainActivity extends AppCompatActivity {
         layoutManager.setStackFromEnd(true);
         recyclerViewChat.setLayoutManager(layoutManager);
 
+        // Disable change animations to prevent flickering during typewriter streaming and code rendering
+        androidx.recyclerview.widget.SimpleItemAnimator animator = 
+                (androidx.recyclerview.widget.SimpleItemAnimator) recyclerViewChat.getItemAnimator();
+        if (animator != null) {
+            animator.setSupportsChangeAnimations(false);
+        }
+
         chatAdapter = new ChatAdapter(this);
         recyclerViewChat.setAdapter(chatAdapter);
     }
@@ -296,36 +303,13 @@ public class MainActivity extends AppCompatActivity {
      */
     private void streamAiMessage(String fullResponse) {
         if (fullResponse == null) fullResponse = "";
-        ChatMessage aiMsg = new ChatMessage(UUID.randomUUID().toString(), "", ChatMessage.TYPE_AI);
+        
+        // Tạo tin nhắn AI và hiển thị ngay lập tức
+        ChatMessage aiMsg = new ChatMessage(UUID.randomUUID().toString(), fullResponse, ChatMessage.TYPE_AI);
         chatAdapter.addMessage(aiMsg);
-        int position = chatAdapter.getItemCount() - 1;
+        chatRepository.saveChatHistory(chatAdapter.getMessages());
         updateEmptyStateVisibility();
         scrollToBottom();
-
-        Handler handler = new Handler(Looper.getMainLooper());
-        final String textToStream = fullResponse;
-        final int[] index = {0};
-        final int step = Math.max(2, textToStream.length() / 40); // Dynamic step for smooth pacing
-        final StringBuilder current = new StringBuilder();
-
-        Runnable typewriter = new Runnable() {
-            @Override
-            public void run() {
-                if (index[0] < textToStream.length()) {
-                    int next = Math.min(index[0] + step, textToStream.length());
-                    current.append(textToStream.substring(index[0], next));
-                    index[0] = next;
-                    chatAdapter.updateMessageContent(position, current.toString());
-                    scrollToBottom();
-                    handler.postDelayed(this, 20);
-                } else {
-                    chatAdapter.updateMessageContent(position, textToStream);
-                    chatRepository.saveChatHistory(chatAdapter.getMessages());
-                    scrollToBottom();
-                }
-            }
-        };
-        handler.post(typewriter);
     }
 
     private void addAiMessage(String content) {
