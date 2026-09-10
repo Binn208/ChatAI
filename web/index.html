@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat AI Web - Trợ Lý Ảo Đa Năng (Gemini, OpenAI, Mock AI)</title>
+    <meta name="description" content="Ứng dụng Chat AI Web phong cách Material 3 hiện đại, hỗ trợ Mock AI, Google Gemini API, OpenAI API và bộ nhớ người dùng dài hạn.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="light-mode">
+    <div class="app-container">
+        <!-- Top App Bar -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="bot-avatar-header">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="header-info">
+                    <h1 class="app-title">Chat AI Web</h1>
+                    <span id="current-model-badge" class="model-badge">Model: Mock AI (Web Demo Ready)</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="btn-theme-toggle" class="icon-btn" title="Chuyển chế độ Sáng/Tối">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button id="btn-clear-chat" class="icon-btn" title="Xóa lịch sử & Đoạn chat mới">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+                <button id="btn-settings" class="icon-btn" title="Cài đặt mô hình AI">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <main class="chat-main">
+            <div id="messages-container" class="messages-container">
+                <!-- Welcome AI Message -->
+                <div class="message-wrapper ai-wrapper" id="msg-welcome">
+                    <div class="message-avatar">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="message-bubble ai-bubble">
+                        <div class="message-text">
+                            👋 <strong>Xin chào! Tôi là Chat AI Web Assistant.</strong><br><br>
+                            Tôi là trợ lý AI thông minh trên nền tảng Web, được đồng bộ hoàn toàn tính năng với phiên bản Android:
+                            <ul>
+                                <li>✨ <strong>Bộ nhớ người dùng</strong>: Tự động ghi nhớ tên, tuổi, quê quán, sở thích của bạn.</li>
+                                <li>🔢 <strong>Toán học & Khoa học</strong>: Tính nhẩm, căn bậc hai, phần trăm, logic.</li>
+                                <li>💻 <strong>Lập trình</strong>: Kiến thức OOP, Java, Android, Web, Database.</li>
+                                <li>⚙️ <strong>Hỗ trợ API thật</strong>: Kết nối Google Gemini & OpenAI trong phần Cài đặt.</li>
+                            </ul>
+                            Hãy thử nhấn vào các gợi ý bên dưới hoặc gõ tin nhắn bất kỳ nhé!
+                        </div>
+                        <div class="message-footer">
+                            <span class="message-time">Vừa xong</span>
+                            <div class="message-actions">
+                                <button class="action-btn btn-copy" title="Sao chép"><i class="fa-regular fa-copy"></i></button>
+                                <button class="action-btn btn-speak" title="Đọc văn bản"><i class="fa-solid fa-volume-high"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div id="typing-indicator" class="typing-indicator hidden">
+                <div class="message-avatar">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="typing-bubble">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="typing-label">AI đang phản hồi...</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Section: Suggestions & Input -->
+        <footer class="app-footer">
+            <!-- Suggestion Chips -->
+            <div class="suggestion-bar" id="suggestion-bar">
+                <button class="suggestion-chip" data-query="15 * 8 bằng mấy?">
+                    <i class="fa-solid fa-calculator"></i> 15 × 8 = ?
+                </button>
+                <button class="suggestion-chip" data-query="4 tính chất của OOP là gì?">
+                    <i class="fa-solid fa-code"></i> 4 tính chất OOP
+                </button>
+                <button class="suggestion-chip" data-query="Tôi tên là Bin, năm nay 21 tuổi">
+                    <i class="fa-solid fa-user-tag"></i> Tôi tên là Bin
+                </button>
+                <button class="suggestion-chip" data-query="Bạn nhớ gì về tôi?">
+                    <i class="fa-solid fa-brain"></i> Bạn nhớ gì về tôi?
+                </button>
+                <button class="suggestion-chip" data-query="Bây giờ là mấy giờ?">
+                    <i class="fa-regular fa-clock"></i> Mấy giờ rồi?
+                </button>
+                <button class="suggestion-chip" data-query="Kể một câu chuyện cười IT">
+                    <i class="fa-regular fa-face-laugh-beam"></i> Chuyện cười IT
+                </button>
+            </div>
+
+            <!-- Input Bar -->
+            <div class="input-container">
+                <button id="btn-mic" class="input-addon-btn" title="Nhập bằng giọng nói (Voice STT)">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+                <textarea id="chat-input" placeholder="Nhập tin nhắn cho AI..." rows="1"></textarea>
+                <button id="btn-send" class="btn-send" title="Gửi tin nhắn" disabled>
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Settings Dialog / Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-sliders"></i> Cài Đặt Mô Hình AI</h2>
+                <button id="btn-close-settings" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="select-provider"><strong>Nhà cung cấp AI:</strong></label>
+                    <select id="select-provider" class="form-control">
+                        <option value="mock">Chế độ Mock AI (Offline - Miễn phí & Nhanh)</option>
+                        <option value="local">🔒 Private LLM (On-Device Local AI - 100% Offline)</option>
+                        <option value="gemini">Google Gemini API (Khuyên dùng)</option>
+                        <option value="openai">OpenAI ChatGPT API</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="group-api-key">
+                    <label for="input-api-key"><strong>API Key:</strong></label>
+                    <div class="password-wrapper">
+                        <input type="password" id="input-api-key" class="form-control" placeholder="Dán API Key của bạn vào đây...">
+                        <button type="button" id="btn-toggle-key-visibility" class="toggle-visibility-btn">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="help-text">API Key được lưu trữ an toàn trong trình duyệt (localStorage) của bạn.</small>
+                </div>
+
+                <div class="form-group" id="group-model-name">
+                    <label for="select-model"><strong>Chọn Model:</strong></label>
+                    <select id="select-model" class="form-control">
+                        <option value="gemini-1.5-flash">gemini-1.5-flash (Nhanh & Tối ưu)</option>
+                        <option value="gemini-1.5-pro">gemini-1.5-pro (Thông minh chuyên sâu)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-system-prompt"><strong>Lời nhắc hệ thống (System Prompt):</strong></label>
+                    <textarea id="input-system-prompt" class="form-control" rows="2" placeholder="Ví dụ: Bạn là trợ lý lập trình thân thiện, hãy trả lời ngắn gọn và dễ hiểu..."></textarea>
+                </div>
+
+                <div class="memory-card">
+                    <div class="memory-card-header">
+                        <strong><i class="fa-solid fa-hard-drive"></i> Bộ nhớ người dùng hiện tại:</strong>
+                        <button id="btn-clear-memory" class="btn-text-danger">Xóa bộ nhớ</button>
+                    </div>
+                    <div id="memory-preview" class="memory-preview-text">Chưa lưu thông tin</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-cancel-settings" class="btn-secondary">Đóng</button>
+                <button id="btn-save-settings" class="btn-primary">Lưu Cấu Hình</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

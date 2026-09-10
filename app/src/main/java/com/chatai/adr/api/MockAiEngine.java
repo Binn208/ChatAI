@@ -12,6 +12,10 @@ import java.util.regex.Pattern;
 
 public class MockAiEngine {
 
+    public static String generateResponse(String userPrompt) {
+        return generateResponse(userPrompt, null, null);
+    }
+
     public static String generateResponse(String userPrompt, List<ChatMessage> history, UserMemoryManager memory) {
         if (userPrompt == null || userPrompt.trim().isEmpty()) {
             return "Xin chào! Bạn có thể đặt bất kỳ câu hỏi nào cho tôi.";
@@ -19,6 +23,11 @@ public class MockAiEngine {
 
         String rawPrompt = userPrompt.trim();
         String lower = rawPrompt.toLowerCase(Locale.ROOT);
+
+        if (lower.contains("appetize") || lower.contains("may ao") || lower.contains("máy ảo")) {
+            return "📱 **Appetize.io** là nền tảng chạy ứng dụng Android trực tiếp trên trình duyệt Web!\n" +
+                    "Ứng dụng ChatAiAdr này được tối ưu sẵn cho máy ảo Appetize.io: hỗ trợ Mock AI không cần mạng ngoài, giao diện mượt mà và tự động co giãn màn hình.";
+        }
 
         // ==========================================
         // 1. TỰ ĐỘNG HỌC & CẬP NHẬT BỘ NHỚ NGƯỜI DÙNG

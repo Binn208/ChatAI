@@ -27,6 +27,9 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.chatai.adr.engine.LlmInferenceEngine;
+import com.chatai.adr.engine.MediaPipeLlmEngine;
+import com.chatai.adr.model.LocalModelItem;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -35,6 +38,7 @@ public class ChatRepository {
     public static final String PROVIDER_MOCK = "mock";
     public static final String PROVIDER_GEMINI = "gemini";
     public static final String PROVIDER_OPENAI = "openai";
+    public static final String PROVIDER_LOCAL_LLM = "local_llm";
 
     private static final String PREFS_NAME = "ChatAiPrefs";
     private static final String KEY_PROVIDER = "provider";
@@ -43,6 +47,7 @@ public class ChatRepository {
     private static final String KEY_SYSTEM_PROMPT = "system_prompt";
     private static final String KEY_HISTORY = "chat_history";
 
+    private final Context context;
     private final SharedPreferences prefs;
     private final Gson gson;
     private final Handler mainHandler;
@@ -57,6 +62,7 @@ public class ChatRepository {
     }
 
     public ChatRepository(Context context) {
+        this.context = context.getApplicationContext();
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         this.gson = new Gson();
         this.mainHandler = new Handler(Looper.getMainLooper());
@@ -171,6 +177,11 @@ public class ChatRepository {
             return;
         }
 
+        if (PROVIDER_LOCAL_LLM.equalsIgnoreCase(provider)) {
+            sendLocalLlmMessage(userMessage, callback);
+            return;
+        }
+
         // Auto learn memory from user prompt even when using Gemini / OpenAI
         if (userMemoryManager != null) {
             userMemoryManager.analyzeAndLearn(userMessage);
@@ -187,6 +198,62 @@ public class ChatRepository {
             sendOpenAiMessage(userMessage, history, apiKey, callback);
         } else {
             callback.onError("Nhà cung cấp không xác định: " + provider);
+        }
+    }
+
+    private void sendLocalLlmMessage(String userMessage, ChatCallback callback) {
+        if (userMemoryManager != null) {
+            userMemoryManager.analyzeAndLearn(userMessage);
+        }
+
+        MediaPipeLlmEngine engine = MediaPipeLlmEngine.getInstance();
+        if (!engine.isLoaded()) {
+            ModelManager modelManager = new ModelManager(context);
+            LocalModelItem activeModel = modelManager.getActiveModel();
+            if (activeModel != null) {
+                modelManager.createDemoWeightsIfAbsent(activeModel);
+
+                LlmInferenceEngine.LlmOptions options = LlmInferenceEngine.LlmOptions.createDefault(getSystemPrompt());
+                engine.initialize(context, modelManager.getModelFile(activeModel).getAbsolutePath(), options, new LlmInferenceEngine.InitCallback() {
+                    @Override
+                    public void onSuccess() {
+                        engine.generateStreaming(userMessage, new LlmInferenceEngine.StreamCallback() {
+                            @Override
+                            public void onPartialResult(String partialText, boolean isDone) {
+                                if (isDone) {
+                                    callback.onSuccess(partialText);
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                callback.onError(errorMessage);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        callback.onError(errorMessage);
+                    }
+                });
+            } else {
+                callback.onError("Chưa chọn mô hình On-Device nào. Vui lòng vào Quản lý mô hình.");
+            }
+        } else {
+            engine.generateStreaming(userMessage, new LlmInferenceEngine.StreamCallback() {
+                @Override
+                public void onPartialResult(String partialText, boolean isDone) {
+                    if (isDone) {
+                        callback.onSuccess(partialText);
+                    }
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    callback.onError(errorMessage);
+                }
+            });
         }
     }
 

@@ -28,9 +28,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import androidx.appcompat.app.AlertDialog;
 import com.chatai.adr.adapter.ChatAdapter;
 import com.chatai.adr.model.ChatMessage;
+import com.chatai.adr.model.LocalModelItem;
 import com.chatai.adr.repository.ChatRepository;
+import com.chatai.adr.repository.ModelManager;
+import com.chatai.adr.util.DeviceHardwareUtil;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -364,6 +369,11 @@ public class MainActivity extends AppCompatActivity {
         String model = chatRepository.getModelName();
         if (ChatRepository.PROVIDER_MOCK.equalsIgnoreCase(provider)) {
             tvActiveModel.setText("Model: Mock AI (Appetize Demo Ready)");
+        } else if (ChatRepository.PROVIDER_LOCAL_LLM.equalsIgnoreCase(provider)) {
+            ModelManager mm = new ModelManager(this);
+            LocalModelItem active = mm.getActiveModel();
+            String name = (active != null) ? active.getName() : "Local LLM";
+            tvActiveModel.setText("🔒 Private LLM: " + name + " (100% Offline)");
         } else if (ChatRepository.PROVIDER_GEMINI.equalsIgnoreCase(provider)) {
             tvActiveModel.setText("Model: Gemini (" + model + ")");
         } else {
@@ -389,6 +399,8 @@ public class MainActivity extends AppCompatActivity {
         RadioButton rbMockAi = dialogView.findViewById(R.id.rbMockAi);
         RadioButton rbGemini = dialogView.findViewById(R.id.rbGemini);
         RadioButton rbOpenAi = dialogView.findViewById(R.id.rbOpenAi);
+        RadioButton rbLocalLlm = dialogView.findViewById(R.id.rbLocalLlm);
+        MaterialButton btnOpenModelManager = dialogView.findViewById(R.id.btnOpenModelManager);
 
         TextInputLayout tilApiKey = dialogView.findViewById(R.id.tilApiKey);
         TextInputEditText edtApiKey = dialogView.findViewById(R.id.edtApiKey);
@@ -397,13 +409,17 @@ public class MainActivity extends AppCompatActivity {
 
         // Bind current data
         String currentProvider = chatRepository.getProvider();
-        if (ChatRepository.PROVIDER_GEMINI.equalsIgnoreCase(currentProvider)) {
+        if (ChatRepository.PROVIDER_LOCAL_LLM.equalsIgnoreCase(currentProvider)) {
+            rbLocalLlm.setChecked(true);
+        } else if (ChatRepository.PROVIDER_GEMINI.equalsIgnoreCase(currentProvider)) {
             rbGemini.setChecked(true);
         } else if (ChatRepository.PROVIDER_OPENAI.equalsIgnoreCase(currentProvider)) {
             rbOpenAi.setChecked(true);
         } else {
             rbMockAi.setChecked(true);
         }
+
+        btnOpenModelManager.setOnClickListener(v -> showModelManagerDialog());
 
         edtApiKey.setText(chatRepository.getApiKey());
         edtModelName.setText(chatRepository.getModelName());
@@ -412,6 +428,10 @@ public class MainActivity extends AppCompatActivity {
         rgProvider.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.rbMockAi) {
                 edtModelName.setText("mock-ai");
+            } else if (checkedId == R.id.rbLocalLlm) {
+                ModelManager mm = new ModelManager(this);
+                LocalModelItem active = mm.getActiveModel();
+                edtModelName.setText(active != null ? active.getName() : "qwen2.5-0.5b");
             } else if (checkedId == R.id.rbGemini) {
                 edtModelName.setText("gemini-1.5-flash");
             } else if (checkedId == R.id.rbOpenAi) {
@@ -423,7 +443,9 @@ public class MainActivity extends AppCompatActivity {
                 .setView(dialogView)
                 .setPositiveButton(R.string.action_save, (dialog, which) -> {
                     String selectedProvider = ChatRepository.PROVIDER_MOCK;
-                    if (rbGemini.isChecked()) {
+                    if (rbLocalLlm.isChecked()) {
+                        selectedProvider = ChatRepository.PROVIDER_LOCAL_LLM;
+                    } else if (rbGemini.isChecked()) {
                         selectedProvider = ChatRepository.PROVIDER_GEMINI;
                     } else if (rbOpenAi.isChecked()) {
                         selectedProvider = ChatRepository.PROVIDER_OPENAI;
@@ -445,6 +467,74 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setNegativeButton(R.string.action_cancel, null)
                 .show();
+    }
+
+    private void showModelManagerDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_model_manager, null);
+        TextView tvRamStatus = dialogView.findViewById(R.id.tvRamStatus);
+        LinearLayout layoutModelsContainer = dialogView.findViewById(R.id.layoutModelsContainer);
+        MaterialButton btnClose = dialogView.findViewById(R.id.btnCloseModelManager);
+
+        DeviceHardwareUtil.MemoryStatus memoryStatus = DeviceHardwareUtil.getMemoryStatus(this);
+        tvRamStatus.setText(memoryStatus.getFormattedSummary());
+
+        ModelManager modelManager = new ModelManager(this);
+        List<LocalModelItem> models = modelManager.getCatalog();
+        String activeModelId = modelManager.getActiveModelId();
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setView(dialogView)
+                .create();
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (LocalModelItem item : models) {
+            View card = inflater.inflate(R.layout.item_model_card, layoutModelsContainer, false);
+            TextView tvName = card.findViewById(R.id.tvModelName);
+            TextView tvBadge = card.findViewById(R.id.tvModelBadge);
+            TextView tvDesc = card.findViewById(R.id.tvModelDescription);
+            TextView tvSize = card.findViewById(R.id.tvModelSize);
+            TextView tvRam = card.findViewById(R.id.tvModelRam);
+            MaterialButton btnAction = card.findViewById(R.id.btnActionModel);
+            MaterialButton btnDelete = card.findViewById(R.id.btnDeleteModel);
+
+            tvName.setText(item.getName());
+            tvBadge.setText(item.getParameterSize() + " / " + item.getQuantization());
+            tvDesc.setText(item.getDescription());
+            tvSize.setText("Tải: ~" + item.getFormattedFileSize());
+            tvRam.setText(item.getFormattedRequiredRam());
+
+            boolean isActive = item.getId().equals(activeModelId);
+            if (isActive) {
+                btnAction.setText("Đang Dùng ✓");
+                btnAction.setEnabled(false);
+            } else {
+                btnAction.setText(item.isDownloaded() ? "Chọn dùng" : "Nạp Demo");
+                btnAction.setEnabled(true);
+            }
+
+            btnAction.setOnClickListener(v -> {
+                modelManager.createDemoWeightsIfAbsent(item);
+                modelManager.setActiveModelId(item.getId());
+                chatRepository.setProvider(ChatRepository.PROVIDER_LOCAL_LLM);
+                updateActiveModelBadge();
+                Toast.makeText(this, "Đã kích hoạt mô hình On-Device: " + item.getName(), Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            });
+
+            btnDelete.setVisibility(item.isDownloaded() && !isActive ? View.VISIBLE : View.GONE);
+            btnDelete.setOnClickListener(v -> {
+                modelManager.deleteModel(item);
+                Toast.makeText(this, "Đã xóa mô hình " + item.getName(), Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                showModelManagerDialog();
+            });
+
+            layoutModelsContainer.addView(card);
+        }
+
+        dialog.show();
     }
 
     @Override

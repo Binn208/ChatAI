@@ -2,6 +2,11 @@
 *.apk
 *.aab
 !ChatAiAdr-debug.apk
+!ChatAiAdr-release.apk
+
+# Keystore files
+keystore/
+keystore.properties
 
 # Gradle files
 .gradle/
@@ -24,5 +29,9 @@ local.properties
 .DS_Store
 Thumbs.db
 
-# Test artifacts / temporary screenshots
+# Test artifacts / temporary screenshots & dumps
 emulator_*.png
+temp.png
+*.xml.bak
+dump.xml
+settings_dump.xml
