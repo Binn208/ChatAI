@@ -634,6 +634,104 @@ body {
     display: none !important;
 }
 
+/* OpenCode Styles */
+.badge-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #2563EB, #7C3AED);
+    color: white;
+    border: none;
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.badge-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.badge-action-btn.active {
+    background: linear-gradient(135deg, #059669, #10B981);
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+}
+
+.suggestion-chip.highlight-chip {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: #3B82F6;
+    color: #2563EB;
+    font-weight: 600;
+}
+
+/* OpenCode Block Container */
+.opencode-block {
+    margin: 10px 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #0F172A;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: 1px solid #1E293B;
+}
+
+.opencode-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1E293B;
+    padding: 6px 14px;
+    border-bottom: 1px solid #334155;
+}
+
+.opencode-lang {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #38BDF8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-copy-code {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #CBD5E1;
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 0.74rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.btn-copy-code:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #FFFFFF;
+}
+
+.opencode-body {
+    padding: 12px 16px;
+    margin: 0;
+    overflow-x: auto;
+    background: #0B0F19;
+    color: #E2E8F0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.opencode-body code {
+    background: transparent !important;
+    padding: 0 !important;
+    color: inherit !important;
+}
+
 /* Keyframes */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(6px); }
@@ -654,3 +752,4 @@ body {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
+

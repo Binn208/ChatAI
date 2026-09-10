@@ -187,20 +187,74 @@ public class MockAiEngine {
         }
 
         // ==========================================
-        // 5. CÔNG NGHỆ, LẬP TRÌNH & JAVA / ANDROID
         // ==========================================
+        // 5. OPENCODE / TRỢ LÝ LẬP TRÌNH & CODE SNIPPETS
+        // ==========================================
+        if (lower.contains("quicksort") || (lower.contains("sắp xếp") && lower.contains("python"))) {
+            return "💻 **Thuật toán QuickSort bằng Python (OpenCode Engine):**\n\n" +
+                    "```python\n" +
+                    "def quick_sort(arr):\n" +
+                    "    if len(arr) <= 1:\n" +
+                    "        return arr\n" +
+                    "    pivot = arr[len(arr) // 2]\n" +
+                    "    left = [x for x in arr if x < pivot]\n" +
+                    "    middle = [x for x in arr if x == pivot]\n" +
+                    "    right = [x for x in arr if x > pivot]\n" +
+                    "    return quick_sort(left) + middle + quick_sort(right)\n" +
+                    "\n" +
+                    "# Ví dụ thực thi:\n" +
+                    "numbers = [38, 27, 43, 3, 9, 82, 10]\n" +
+                    "sorted_numbers = quick_sort(numbers)\n" +
+                    "print('Mảng sau khi sắp xếp:', sorted_numbers)\n" +
+                    "```\n\n" +
+                    "Độ phức tạp thuật toán: Trung bình `O(n log n)`, xấu nhất `O(n²)`.";
+        }
+
+        if (lower.contains("opencode") || lower.contains("viết code") || lower.contains("mẫu code") || lower.contains("tạo hàm")) {
+            return "⚡ **OpenCode Assistant:** Dưới đây là đoạn mã Java chuẩn Clean Code xử lý lọc dữ liệu:\n\n" +
+                    "```java\n" +
+                    "import java.util.List;\n" +
+                    "import java.util.stream.Collectors;\n" +
+                    "\n" +
+                    "public class CodeHelper {\n" +
+                    "    // Lọc danh sách chuỗi theo độ dài tối thiểu\n" +
+                    "    public static List<String> filterLongWords(List<String> words, int minLength) {\n" +
+                    "        return words.stream()\n" +
+                    "                .filter(w -> w != null && w.length() >= minLength)\n" +
+                    "                .map(String::trim)\n" +
+                    "                .collect(Collectors.toList());\n" +
+                    "    }\n" +
+                    "}\n" +
+                    "```\n\n" +
+                    "💡 Bạn có thể bấm nút **SAO CHÉP** ở góc trên khối mã để dán trực tiếp vào dự án!";
+        }
+
         if (lower.contains("oop") || lower.contains("hướng đối tượng") || lower.contains("tính chất oop")) {
             return "💻 **4 Tính chất cốt lõi của Lập trình Hướng đối tượng (OOP):**\n" +
                     "1. **Đóng gói (Encapsulation)**: Che giấu thông tin nội bộ của đối tượng thông qua `private` và cung cấp getter/setter.\n" +
                     "2. **Kế thừa (Inheritance)**: Lớp con thừa hưởng các thuộc tính và phương thức từ lớp cha (`extends`).\n" +
                     "3. **Đa hình (Polymorphism)**: Cùng một hành động nhưng thực hiện theo nhiều cách khác nhau (Nạp chồng - Overloading, Ghi đè - Overriding).\n" +
-                    "4. **Trừu tượng (Abstraction)**: Chỉ tập trung vào những gì đối tượng làm thay vì cách làm cụ thể (`abstract class`, `interface`).";
+                    "4. **Trừu tượng (Abstraction)**: Chỉ tập trung vào những gì đối tượng làm thay vì cách làm cụ thể (`abstract class`, `interface`).\n\n" +
+                    "```java\n" +
+                    "// Ví dụ Tính Kế Thừa & Đa Hình\n" +
+                    "abstract class Animal {\n" +
+                    "    abstract void makeSound();\n" +
+                    "}\n" +
+                    "class Cat extends Animal {\n" +
+                    "    @Override\n" +
+                    "    void makeSound() { System.out.println(\"Meow!\"); }\n" +
+                    "}\n" +
+                    "```";
         }
 
         if (lower.contains("arraylist") && lower.contains("linkedlist")) {
-            return "📚 **So sánh ArrayList vs LinkedList trong Java:**\n" +
+            return "📚 **So sánh ArrayList vs LinkedList trong Java:**\n\n" +
                     "- **ArrayList**: Dùng mảng động liên tục. Truy cập ngẫu nhiên theo chỉ mục `get(i)` cực nhanh O(1). Thêm/xóa ở giữa chậm O(n) do phải dời phần tử.\n" +
-                    "- **LinkedList**: Dùng danh sách liên kết đôi (Node). Thêm/xóa đầu cuối rất nhanh O(1). Nhưng tìm kiếm ngẫu nhiên chậm O(n) vì phải duyệt từ đầu.";
+                    "- **LinkedList**: Dùng danh sách liên kết đôi (Node). Thêm/xóa đầu cuối rất nhanh O(1). Nhưng tìm kiếm ngẫu nhiên chậm O(n) vì phải duyệt từ đầu.\n\n" +
+                    "```java\n" +
+                    "List<String> arrayList = new ArrayList<>(); // Truy cập get(index) nhanh\n" +
+                    "List<String> linkedList = new LinkedList<>(); // Chèn/xóa đầu đuôi nhanh\n" +
+                    "```";
         }
 
         if (lower.contains("lifecycle") || lower.contains("vòng đời") || (lower.contains("activity") && lower.contains("android"))) {

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -127,6 +128,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private final ImageButton btnRegenerate;
         private final ImageButton btnLike;
         private final ImageButton btnDislike;
+        private final LinearLayout layoutCodeBlocks;
 
         AiViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -137,13 +139,61 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             btnRegenerate = itemView.findViewById(R.id.btnRegenerateAiMessage);
             btnLike = itemView.findViewById(R.id.btnLikeAiMessage);
             btnDislike = itemView.findViewById(R.id.btnDislikeAiMessage);
+            layoutCodeBlocks = itemView.findViewById(R.id.layoutCodeBlocks);
         }
 
         void bind(ChatMessage message, int position, Context context, OnMessageActionListener listener) {
-            tvContent.setText(message.getContent());
+            String raw = message.getContent() != null ? message.getContent() : "";
+
+            // OpenCode parsing: Check if there are markdown code blocks
+            List<com.chatai.adr.util.CodeFormatterUtil.FormattedSection> sections = 
+                    com.chatai.adr.util.CodeFormatterUtil.parseContent(raw);
+
+            boolean hasCodeBlock = false;
+            for (com.chatai.adr.util.CodeFormatterUtil.FormattedSection sec : sections) {
+                if (sec.isCodeBlock) {
+                    hasCodeBlock = true;
+                    break;
+                }
+            }
+
+            if (!hasCodeBlock) {
+                if (layoutCodeBlocks != null) {
+                    layoutCodeBlocks.removeAllViews();
+                    layoutCodeBlocks.setVisibility(View.GONE);
+                }
+                tvContent.setText(com.chatai.adr.util.CodeFormatterUtil.formatInlineMarkdown(raw));
+                tvContent.setVisibility(View.VISIBLE);
+            } else {
+                if (layoutCodeBlocks != null) {
+                    layoutCodeBlocks.removeAllViews();
+                    layoutCodeBlocks.setVisibility(View.VISIBLE);
+
+                    for (com.chatai.adr.util.CodeFormatterUtil.FormattedSection sec : sections) {
+                        if (sec.isCodeBlock) {
+                            View codeBlockView = com.chatai.adr.util.CodeFormatterUtil.createCodeBlockView(
+                                    context, sec.language, sec.content);
+                            layoutCodeBlocks.addView(codeBlockView);
+                        } else if (!sec.content.trim().isEmpty()) {
+                            TextView inlineTv = new TextView(context);
+                            inlineTv.setText(com.chatai.adr.util.CodeFormatterUtil.formatInlineMarkdown(sec.content));
+                            inlineTv.setTextColor(context.getResources().getColor(R.color.ai_bubble_text));
+                            inlineTv.setTextSize(14.5f);
+                            inlineTv.setTextIsSelectable(true);
+                            inlineTv.setPadding(0, 8, 0, 8);
+                            layoutCodeBlocks.addView(inlineTv);
+                        }
+                    }
+                    tvContent.setVisibility(View.GONE);
+                } else {
+                    tvContent.setText(com.chatai.adr.util.CodeFormatterUtil.formatInlineMarkdown(raw));
+                    tvContent.setVisibility(View.VISIBLE);
+                }
+            }
+
             tvTime.setText(message.getFormattedTime());
 
-            // Copy
+            // Copy full message
             btnCopy.setOnClickListener(v -> {
                 ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clip = ClipData.newPlainText("AI Message", message.getContent());

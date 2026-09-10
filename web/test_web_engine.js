@@ -64,6 +64,10 @@ assert("Query memory returns profile summary", queryRes.includes("Bin") && query
 const nameRes = MockAiEngine.generateResponse("Tôi tên là gì?", [], memory);
 assert("Name query returns Bin", nameRes.includes("Bin"));
 
+// Test 8: OpenCode QuickSort Python
+const codeRes = MockAiEngine.generateResponse("Viết hàm quicksort bằng Python", [], memory);
+assert("OpenCode returns python quicksort code block", codeRes.includes("```python") && codeRes.includes("def quick_sort"));
+
 console.log("==========================================");
 console.log(`WEB ENGINE TEST RESULT: ${passed} PASS, ${failed} FAIL`);
 console.log("==========================================");

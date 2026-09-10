@@ -208,19 +208,64 @@ class MockAiEngine {
             return `📐 Căn bậc 2 của ${val} = **${formatted}**`;
         }
 
-        // 5. Công nghệ & Lập trình
+        // 5. OpenCode & Lập trình
+        if (lower.includes("quicksort") || (lower.includes("sắp xếp") && lower.includes("python"))) {
+            return "💻 **Thuật toán QuickSort bằng Python (OpenCode Engine):**\n\n" +
+                   "```python\n" +
+                   "def quick_sort(arr):\n" +
+                   "    if len(arr) <= 1:\n" +
+                   "        return arr\n" +
+                   "    pivot = arr[len(arr) // 2]\n" +
+                   "    left = [x for x in arr if x < pivot]\n" +
+                   "    middle = [x for x in arr if x == pivot]\n" +
+                   "    right = [x for x in arr if x > pivot]\n" +
+                   "    return quick_sort(left) + middle + quick_sort(right)\n" +
+                   "\n" +
+                   "# Kiểm thử:\n" +
+                   "numbers = [38, 27, 43, 3, 9, 82, 10]\n" +
+                   "print('Kết quả sau khi sắp xếp:', quick_sort(numbers))\n" +
+                   "```\n\n" +
+                   "Độ phức tạp: Trung bình `O(n log n)`, xấu nhất `O(n²)`. Bạn có thể bấm **Sao chép** trên thanh công cụ khối mã!";
+        }
+
+        if (lower.includes("opencode") || lower.includes("viết code") || lower.includes("mẫu code")) {
+            return "⚡ **OpenCode Assistant:** Dưới đây là ví dụ mã JavaScript xử lý Debounce chống spam click:\n\n" +
+                   "```javascript\n" +
+                   "function debounce(func, delay = 300) {\n" +
+                   "    let timer;\n" +
+                   "    return (...args) => {\n" +
+                   "        clearTimeout(timer);\n" +
+                   "        timer = setTimeout(() => { func.apply(this, args); }, delay);\n" +
+                   "    };\n" +
+                   "}\n" +
+                   "```\n\n" +
+                   "💡 Bấm nút **Sao chép** góc phải khối mã để lấy code nhé!";
+        }
+
         if (lower.includes("oop") || lower.includes("hướng đối tượng") || lower.includes("tính chất oop")) {
             return "💻 **4 Tính chất cốt lõi của Lập trình Hướng đối tượng (OOP):**\n\n" +
                    "1. **Đóng gói (Encapsulation)**: Che giấu trạng thái nội bộ qua `private` và cung cấp getter/setter.\n" +
                    "2. **Kế thừa (Inheritance)**: Tái sử dụng và mở rộng các thuộc tính, phương thức của lớp cha (`extends`).\n" +
                    "3. **Đa hình (Polymorphism)**: Một hành vi có nhiều biểu hiện khác nhau (Overloading & Overriding).\n" +
-                   "4. **Trừu tượng (Abstraction)**: Tập trung vào mục đích hành động thay vì cách cài đặt cụ thể (`interface`, `abstract class`).";
+                   "4. **Trừu tượng (Abstraction)**: Tập trung vào mục đích hành động thay vì cách cài đặt cụ thể (`interface`, `abstract class`).\n\n" +
+                   "```java\n" +
+                   "abstract class Animal {\n" +
+                   "    abstract void sound();\n" +
+                   "}\n" +
+                   "class Cat extends Animal {\n" +
+                   "    void sound() { System.out.println(\"Meow\"); }\n" +
+                   "}\n" +
+                   "```";
         }
 
         if (lower.includes("arraylist") && lower.includes("linkedlist")) {
             return "📚 **So sánh ArrayList vs LinkedList:**\n\n" +
                    "- **ArrayList**: Mảng động liên tục. Truy cập ngẫu nhiên theo index `get(i)` cực nhanh O(1). Thêm/xóa ở giữa chậm O(n).\n" +
-                   "- **LinkedList**: Danh sách liên kết đôi (Node). Thêm/xóa ở đầu/cuối rất nhanh O(1). Nhưng tìm kiếm ngẫu nhiên chậm O(n).";
+                   "- **LinkedList**: Danh sách liên kết đôi (Node). Thêm/xóa ở đầu/cuối rất nhanh O(1). Nhưng tìm kiếm ngẫu nhiên chậm O(n).\n\n" +
+                   "```java\n" +
+                   "List<String> arr = new ArrayList<>(); // Truy cập nhanh O(1)\n" +
+                   "List<String> link = new LinkedList<>(); // Chèn xóa đầu cuối nhanh O(1)\n" +
+                   "```";
         }
 
         if (lower.includes("lifecycle") || lower.includes("vòng đời") || lower.includes("activity")) {
@@ -655,6 +700,26 @@ document.addEventListener("DOMContentLoaded", () => {
         wireMessageButtons(wrapper, text);
     }
 
+    // OpenCode Mode Toggle
+    const btnOpenCode = document.getElementById("btn-opencode");
+    let isOpenCodeMode = false;
+    if (btnOpenCode) {
+        btnOpenCode.addEventListener("click", () => {
+            isOpenCodeMode = !isOpenCodeMode;
+            if (isOpenCodeMode) {
+                btnOpenCode.classList.add("active");
+                btnOpenCode.innerHTML = '<i class="fa-solid fa-check"></i> <span>OpenCode: ON</span>';
+                config.systemPrompt = "Bạn là OpenCode Assistant - một chuyên gia lập trình cấp cao. Hãy luôn viết code sạch, tối ưu, có giải thích ngắn gọn và đặt mã nguồn trong các khối code markdown (```lang ... ```) chuẩn.";
+                showToast("Đã kích hoạt chế độ Trợ lý Lập trình OpenCode!");
+            } else {
+                btnOpenCode.classList.remove("active");
+                btnOpenCode.innerHTML = '<i class="fa-solid fa-code"></i> <span>OpenCode</span>';
+                config.systemPrompt = localStorage.getItem("chat_ai_system_prompt") || "";
+                showToast("Đã tắt chế độ OpenCode!");
+            }
+        });
+    }
+
     function wireMessageButtons(wrapper, text) {
         const btnCopy = wrapper.querySelector(".btn-copy");
         if (btnCopy) {
@@ -670,7 +735,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btnSpeak.addEventListener("click", () => {
                 if ("speechSynthesis" in window) {
                     window.speechSynthesis.cancel();
-                    const cleanText = text.replace(/[*_#`]/g, "");
+                    const cleanText = text.replace(/[*_#`]/g, "").replace(/```[\s\S]*?```/g, " Đoạn mã nguồn. ");
                     const utterance = new SpeechSynthesisUtterance(cleanText);
                     utterance.lang = "vi-VN";
                     utterance.rate = 1.05;
@@ -681,17 +746,39 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
         }
+
+        // Wire OpenCode copy buttons inside code blocks
+        const copyCodeBtns = wrapper.querySelectorAll(".btn-copy-code");
+        copyCodeBtns.forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const codeBlock = btn.closest(".opencode-block");
+                const codeEl = codeBlock ? codeBlock.querySelector(".opencode-body code") : null;
+                if (codeEl) {
+                    const rawCode = codeEl.innerText || codeEl.textContent;
+                    navigator.clipboard.writeText(rawCode).then(() => {
+                        btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép';
+                        btn.style.color = '#10B981';
+                        showToast("Đã sao chép khối mã nguồn!");
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="fa-regular fa-copy"></i> Sao chép';
+                            btn.style.color = '';
+                        }, 2200);
+                    });
+                }
+            });
+        });
     }
 
     function updateModelBadge() {
         if (config.provider === "local") {
-            currentModelBadge.textContent = "🔒 Private LLM: Qwen 2.5 0.5B (100% Offline)";
+            currentModelBadge.textContent = "🔒 Private LLM: Qwen 2.5 Coder / 0.5B (Offline)";
         } else if (config.provider === "gemini") {
             currentModelBadge.textContent = `Model: Google Gemini (${config.model})`;
         } else if (config.provider === "openai") {
             currentModelBadge.textContent = `Model: OpenAI (gpt-4o-mini)`;
         } else {
-            currentModelBadge.textContent = "Model: Mock AI (Web & Appetize Ready)";
+            currentModelBadge.textContent = "Model: Mock AI & OpenCode (Ready)";
         }
     }
 
@@ -721,15 +808,44 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function formatMarkdown(text) {
-        let html = escapeHtml(text);
-        // Bold: **text**
+        if (!text) return "";
+
+        // 1. Parse OpenCode blocks: ```lang ... ```
+        const codeBlocks = [];
+        let parsed = text.replace(/```([a-zA-Z0-9_-]*)\s*\n?([\s\S]*?)```/g, (match, lang, code) => {
+            const langName = (lang || "CODE").toUpperCase().trim();
+            const placeholder = `__OPENCODE_BLOCK_${codeBlocks.length}__`;
+            const cleanCode = escapeHtml(code.replace(/^\n+|\n+$/g, ''));
+            const blockHtml = `
+                <div class="opencode-block">
+                    <div class="opencode-header">
+                        <span class="opencode-lang"><i class="fa-solid fa-code"></i> ${langName}</span>
+                        <button type="button" class="btn-copy-code"><i class="fa-regular fa-copy"></i> Sao chép</button>
+                    </div>
+                    <pre class="opencode-body"><code>${cleanCode}</code></pre>
+                </div>
+            `;
+            codeBlocks.push(blockHtml);
+            return placeholder;
+        });
+
+        // 2. Escape regular text
+        let html = escapeHtml(parsed);
+
+        // 3. Bold: **text**
         html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        // Italic: *text*
+        // 4. Italic: *text*
         html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        // Inline code: `code`
+        // 5. Inline code: `code`
         html = html.replace(/`(.*?)`/g, '<code>$1</code>');
-        // Newlines
+        // 6. Newlines
         html = html.replace(/\n/g, '<br>');
+
+        // 7. Restore OpenCode blocks
+        codeBlocks.forEach((blockHtml, index) => {
+            html = html.replace(`__OPENCODE_BLOCK_${index}__`, blockHtml);
+        });
+
         return html;
     }
 });

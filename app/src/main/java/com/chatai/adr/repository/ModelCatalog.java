@@ -9,6 +9,19 @@ public class ModelCatalog {
     public static List<LocalModelItem> getRecommendedModels() {
         List<LocalModelItem> models = new ArrayList<>();
 
+        // 0. OpenCode - Qwen 2.5 Coder 0.5B Instruct (Chuyên gia Lập trình Offline)
+        models.add(new LocalModelItem(
+                "qwen2.5-coder-0.5b",
+                "OpenCode (Qwen 2.5 Coder 0.5B)",
+                "0.5B Coder",
+                "4-bit Quantized GGUF",
+                "Mô hình chuyên biệt lập trình offline, tối ưu viết mã Python, Java, JavaScript, C++, HTML/CSS và SQL siêu tốc.",
+                "https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-0.5b-instruct-q4_k_m.gguf",
+                385L * 1024 * 1024, // ~385 MB
+                850L * 1024 * 1024, // ~850 MB RAM
+                "qwen2.5-coder-0.5b-instruct-q4_k_m.bin"
+        ));
+
         // 1. Qwen 2.5 0.5B Instruct - Siêu nhẹ, chạy mượt trên mọi thiết bị
         models.add(new LocalModelItem(
                 "qwen2.5-0.5b-instruct",

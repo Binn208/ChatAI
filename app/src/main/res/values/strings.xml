@@ -34,9 +34,10 @@
     <string name="suggestion_welcome_title">Hôm nay tôi có thể giúp gì cho bạn?</string>
     <string name="suggestion_welcome_sub">Chọn một gợi ý nhanh hoặc gõ tin nhắn bên dưới</string>
     <string name="suggestion_1">✉️ Viết email xin nghỉ phép chuyên nghiệp</string>
-    <string name="suggestion_2">💻 Giải thích 4 tính chất OOP trong Java</string>
+    <string name="suggestion_2">💻 OpenCode: Viết hàm QuickSort Python</string>
     <string name="suggestion_3">🌐 Dịch sang tiếng Việt: "Artificial Intelligence will reshape the future"</string>
     <string name="suggestion_4">🧮 Tính: 15 * 8 và căn bậc 2 của 144</string>
+    <string name="action_opencode">OpenCode</string>
     <string name="tts_speaking">Đang phát giọng đọc…</string>
     <string name="feedback_liked">Cảm ơn bạn đã gửi đánh giá tích cực! 👍</string>
     <string name="feedback_disliked">Đã ghi nhận phản hồi để cải thiện! ✍️</string>
