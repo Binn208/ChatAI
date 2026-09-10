@@ -35,3 +35,7 @@ temp.png
 *.xml.bak
 dump.xml
 settings_dump.xml
+
+# Archives and export folders
+*.zip
+00_FILE_CAI_DAT_CHO_BAN/
