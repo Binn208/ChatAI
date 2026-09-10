@@ -93,6 +93,17 @@
                 android:textSize="13sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- 1-Click Button to get free Gemini API key -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGetFreeApiKey"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="🔑 Lấy API Key Gemini Miễn Phí (Google AI Studio)"
+            android:textColor="@color/primary"
+            android:textSize="11.5sp" />
+
         <!-- Model Name Container -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilModelName"

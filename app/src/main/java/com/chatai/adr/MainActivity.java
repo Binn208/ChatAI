@@ -2,6 +2,7 @@ package com.chatai.adr;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -404,6 +405,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         btnOpenModelManager.setOnClickListener(v -> showModelManagerDialog());
+
+        MaterialButton btnGetFreeApiKey = dialogView.findViewById(R.id.btnGetFreeApiKey);
+        if (btnGetFreeApiKey != null) {
+            btnGetFreeApiKey.setOnClickListener(v -> {
+                try {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://aistudio.google.com/app/apikey"));
+                    startActivity(browserIntent);
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "Vui lòng truy cập: https://aistudio.google.com/app/apikey", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
 
         // Update initial hint and key according to current provider
         if (ChatRepository.PROVIDER_GEMINI.equalsIgnoreCase(currentProvider)) {
