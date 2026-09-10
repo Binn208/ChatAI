@@ -187,8 +187,18 @@ public class ChatRepository {
             userMemoryManager.analyzeAndLearn(userMessage);
         }
 
+        // Tự động chuyển đổi thông minh (Smart Fallback):
+        // Nếu người dùng chọn Gemini hoặc OpenAI nhưng chưa nhập API Key,
+        // hệ thống sẽ tự động phản hồi bằng Mock AI & OpenCode Engine tích hợp sẵn
+        // để người dùng vẫn trò chuyện được ngay lập tức và giải thích cách cấu hình API Key.
         if (apiKey == null || apiKey.trim().isEmpty()) {
-            callback.onError("Chưa cấu hình API Key. Vui lòng vào Cài đặt để nhập API Key hoặc chọn Mock AI.");
+            mainHandler.postDelayed(() -> {
+                String aiReply = MockAiEngine.generateResponse(userMessage, history, userMemoryManager);
+                String tip = "\n\n💡 *Ghi chú: Bạn đang ở chế độ " + provider.toUpperCase() + " nhưng chưa có API Key. " +
+                        "AI đã tự động dùng bộ xử lý thông minh Offline để giải đáp câu hỏi của bạn. " +
+                        "Bạn có thể vào Cài đặt (⚙️) nhập API Key bất cứ lúc nào!*";
+                callback.onSuccess(aiReply + tip);
+            }, 600);
             return;
         }
 
