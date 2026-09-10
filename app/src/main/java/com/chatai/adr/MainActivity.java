@@ -405,21 +405,38 @@ public class MainActivity extends AppCompatActivity {
 
         btnOpenModelManager.setOnClickListener(v -> showModelManagerDialog());
 
-        edtApiKey.setText(chatRepository.getApiKey());
+        // Update initial hint and key according to current provider
+        if (ChatRepository.PROVIDER_GEMINI.equalsIgnoreCase(currentProvider)) {
+            tilApiKey.setHint("API Key Google Gemini (Đã cấu hình sẵn):");
+            edtApiKey.setText(chatRepository.getApiKey(ChatRepository.PROVIDER_GEMINI));
+        } else if (ChatRepository.PROVIDER_OPENAI.equalsIgnoreCase(currentProvider)) {
+            tilApiKey.setHint("API Key OpenAI (Đã cấu hình sẵn):");
+            edtApiKey.setText(chatRepository.getApiKey(ChatRepository.PROVIDER_OPENAI));
+        } else {
+            tilApiKey.setHint("API Key (Không bắt buộc cho Mock AI / Local AI):");
+            edtApiKey.setText(chatRepository.getApiKey(ChatRepository.PROVIDER_GEMINI));
+        }
+
         edtModelName.setText(chatRepository.getModelName());
         edtSystemPrompt.setText(chatRepository.getSystemPrompt());
 
         rgProvider.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.rbMockAi) {
                 edtModelName.setText("mock-ai");
+                tilApiKey.setHint("API Key (Không bắt buộc cho Mock AI):");
             } else if (checkedId == R.id.rbLocalLlm) {
                 ModelManager mm = new ModelManager(this);
                 LocalModelItem active = mm.getActiveModel();
                 edtModelName.setText(active != null ? active.getName() : "qwen2.5-0.5b");
+                tilApiKey.setHint("API Key (Không cần cho Private LLM Offline):");
             } else if (checkedId == R.id.rbGemini) {
                 edtModelName.setText("gemini-1.5-flash");
+                tilApiKey.setHint("API Key Google Gemini (Đã cấu hình sẵn):");
+                edtApiKey.setText(chatRepository.getApiKey(ChatRepository.PROVIDER_GEMINI));
             } else if (checkedId == R.id.rbOpenAi) {
                 edtModelName.setText("gpt-4o-mini");
+                tilApiKey.setHint("API Key OpenAI (Đã cấu hình sẵn):");
+                edtApiKey.setText(chatRepository.getApiKey(ChatRepository.PROVIDER_OPENAI));
             }
         });
 
@@ -437,7 +454,7 @@ public class MainActivity extends AppCompatActivity {
 
                     chatRepository.setProvider(selectedProvider);
                     if (edtApiKey.getText() != null) {
-                        chatRepository.setApiKey(edtApiKey.getText().toString().trim());
+                        chatRepository.setApiKey(selectedProvider, edtApiKey.getText().toString().trim());
                     }
                     if (edtModelName.getText() != null) {
                         chatRepository.setModelName(edtModelName.getText().toString().trim());

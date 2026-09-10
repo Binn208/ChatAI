@@ -77,35 +77,43 @@ public class UserMemoryManager {
         if (prompt == null || prompt.trim().isEmpty()) return null;
         String raw = prompt.trim();
 
-        // 1. Học Tên siêu linh hoạt: "tôi tên là bin", "toi ten la bin", "tên tôi là...", "tôi là bin", "anh tên là...", "em tên là...", "gọi tôi là..."
-        Pattern pName1 = Pattern.compile("(?:tôi|toi|tao|minh|mình|tớ|to|anh|em|chị|chi)\\s+(?:tên\\s+là|ten\\s+la|tên\\s+la|ten\\s+là|tên|ten|là\\s+tên|la\\s+ten|là|la)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
-        Pattern pName2 = Pattern.compile("(?:tên|ten)(?:\\s+(?:của|cua))?\\s+(?:tôi|toi|mình|minh|tớ|to|anh|em|chị|chi)?\\s+(?:là|la|:)?\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
-        Pattern pName3 = Pattern.compile("(?:gọi|goi)\\s+(?:tôi|toi|mình|minh|tớ|to|anh|em)\\s+(?:là|la)?\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
+        try {
+            // 1. Học Tên siêu linh hoạt: "tôi tên là bin", "toi ten la bin", "tên tôi là...", "tôi là bin", "anh tên là...", "em tên là...", "gọi tôi là..."
+            Pattern pName1 = Pattern.compile("(?:tôi|toi|tao|minh|mình|tớ|to|anh|em|chị|chi)\\s+(?:tên\\s+là|ten\\s+la|tên\\s+la|ten\\s+là|tên|ten|là\\s+tên|la\\s+ten|là|la)\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
+            Pattern pName2 = Pattern.compile("(?:tên|ten)(?:\\s+(?:của|cua))?\\s+(?:tôi|toi|mình|minh|tớ|to|anh|em|chị|chi)?\\s+(?:là|la|:)?\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
+            Pattern pName3 = Pattern.compile("(?:gọi|goi)\\s+(?:tôi|toi|mình|minh|tớ|to|anh|em)\\s+(?:là|la)?\\s+([a-zA-Z0-9à-ỹÀ-Ỹ\\s]{2,20})", Pattern.CASE_INSENSITIVE);
 
-        Matcher mName = pName1.matcher(raw);
-        if (!mName.find()) mName = pName2.matcher(raw);
-        if (!mName.find()) mName = pName3.matcher(raw);
-
-        if (mName.find()) {
-            String extracted = mName.group(1).trim();
-            if (extracted.toLowerCase().startsWith("là ")) extracted = extracted.substring(3).trim();
-            if (extracted.toLowerCase().startsWith("la ")) extracted = extracted.substring(3).trim();
-            if (extracted.contains(",")) extracted = extracted.split(",")[0].trim();
-            if (extracted.contains(".")) extracted = extracted.split("\\.")[0].trim();
-            String extLower = extracted.toLowerCase();
-
-            // Nếu câu là câu hỏi ("gì", "gi", "ai", "nào", "nao") thì KHÔNG lưu là tên
-            boolean isQuestion = extLower.equals("gì") || extLower.equals("gi") || extLower.contains("gì thế")
-                    || extLower.contains("gi the") || extLower.equals("ai") || extLower.contains("nào") || extLower.contains("nao")
-                    || extLower.contains("sao") || extLower.contains("nho") || extLower.contains("nhớ");
-            boolean isStopWord = extLower.equals("người") || extLower.equals("nguoi") || extLower.equals("sinh viên") || extLower.equals("học sinh")
-                    || extLower.equals("lập trình viên") || extLower.equals("ai đó");
-
-            if (!isQuestion && !isStopWord && extracted.length() >= 2) {
-                setName(extracted);
-                return "Đã ghi nhớ tên của bạn là: " + extracted;
+            Matcher mName = pName1.matcher(raw);
+            boolean foundName = mName.find();
+            if (!foundName) {
+                mName = pName2.matcher(raw);
+                foundName = mName.find();
             }
-        }
+            if (!foundName) {
+                mName = pName3.matcher(raw);
+                foundName = mName.find();
+            }
+
+            if (foundName) {
+                String extracted = mName.group(1).trim();
+                if (extracted.toLowerCase().startsWith("là ")) extracted = extracted.substring(3).trim();
+                if (extracted.toLowerCase().startsWith("la ")) extracted = extracted.substring(3).trim();
+                if (extracted.contains(",")) extracted = extracted.split(",")[0].trim();
+                if (extracted.contains(".")) extracted = extracted.split("\\.")[0].trim();
+                String extLower = extracted.toLowerCase();
+
+                // Nếu câu là câu hỏi ("gì", "gi", "ai", "nào", "nao") thì KHÔNG lưu là tên
+                boolean isQuestion = extLower.equals("gì") || extLower.equals("gi") || extLower.contains("gì thế")
+                        || extLower.contains("gi the") || extLower.equals("ai") || extLower.contains("nào") || extLower.contains("nao")
+                        || extLower.contains("sao") || extLower.contains("nho") || extLower.contains("nhớ");
+                boolean isStopWord = extLower.equals("người") || extLower.equals("nguoi") || extLower.equals("sinh viên") || extLower.equals("học sinh")
+                        || extLower.equals("lập trình viên") || extLower.equals("ai đó");
+
+                if (!isQuestion && !isStopWord && extracted.length() >= 2) {
+                    setName(extracted);
+                    return "Đã ghi nhớ tên của bạn là: " + extracted;
+                }
+            }
 
         // 2. Học Tuổi: "tôi 20 tuổi", "toi 20 tuoi", "mình 22 tuổi", "tôi sinh năm 2004"
         Pattern pAge = Pattern.compile("(?:tôi|toi|mình|minh|tớ|to)\\s+(?:năm\\s+nay\\s+)?([0-9]{1,2})\\s*(?:tuổi|tuoi)", Pattern.CASE_INSENSITIVE);
@@ -159,6 +167,7 @@ public class UserMemoryManager {
                 return "Đã ghi nhớ sở thích của bạn là: " + hobby;
             }
         }
+        } catch (Exception ignored) {}
 
         return null;
     }
