@@ -27,10 +27,10 @@ class UserMemoryManager {
         const raw = prompt.trim();
         const learned = [];
 
-        // 1. Tên
-        const pName1 = /(?:tôi|toi|tao|minh|mình|tớ|to)\s+(?:tên\s+là|ten\s+la|tên\s+la|ten\s+là|tên|ten|là|la)\s+([a-zA-Z0-9à-ỹÀ-Ỹ\s]{2,20})/i;
-        const pName2 = /(?:tên|ten)(?:\s+(?:của|cua))?\s+(?:tôi|toi|mình|minh|tớ|to)\s+(?:là|la)?\s+([a-zA-Z0-9à-ỹÀ-Ỹ\s]{2,20})/i;
-        const pName3 = /(?:gọi|goi)\s+(?:tôi|toi|mình|minh|tớ|to)\s+(?:là|la)?\s+([a-zA-Z0-9à-ỹÀ-Ỹ\s]{2,20})/i;
+        // 1. Tên siêu linh hoạt
+        const pName1 = /(?:tôi|toi|tao|minh|mình|tớ|to|anh|em|chị|chi)\s+(?:tên\s+là|ten\s+la|tên\s+la|ten\s+là|tên|ten|là\s+tên|la\s+ten|là|la)\s+([a-zA-Z0-9à-ỹÀ-Ỹ\s]{2,20})/i;
+        const pName2 = /(?:tên|ten)(?:\s+(?:của|cua))?\s+(?:tôi|toi|mình|minh|tớ|to|anh|em|chị|chi)?\s+(?:là|la|:)?\s+([a-zA-Z0-9à-ỹÀ-Ỹ\s]{2,20})/i;
+        const pName3 = /(?:gọi|goi)\s+(?:tôi|toi|mình|minh|tớ|to|anh|em)\s+(?:là|la)?\s+([a-zA-Z0-9à-ỹÀ-Ỹ\s]{2,20})/i;
 
         let mName = raw.match(pName1) || raw.match(pName2) || raw.match(pName3);
         if (mName) {
@@ -38,9 +38,10 @@ class UserMemoryManager {
             if (name.toLowerCase().startsWith("là ")) name = name.substring(3).trim();
             if (name.toLowerCase().startsWith("la ")) name = name.substring(3).trim();
             if (name.includes(",")) name = name.split(",")[0].trim();
+            if (name.includes(".")) name = name.split(".")[0].trim();
             const lower = name.toLowerCase();
-            const isQ = lower.includes("gì") || lower.includes("gi") || lower.includes("ai") || lower.includes("nào");
-            const isStop = lower === "người" || lower === "sinh viên" || lower === "học sinh";
+            const isQ = lower.includes("gì") || lower.includes("gi") || lower.includes("ai") || lower.includes("nào") || lower.includes("sao") || lower.includes("nhớ");
+            const isStop = lower === "người" || lower === "sinh viên" || lower === "học sinh" || lower === "ai đó";
             if (!isQ && !isStop && name.length >= 2) {
                 this.memory.name = name;
                 learned.push(`Tên: ${name}`);
@@ -154,10 +155,11 @@ class MockAiEngine {
             return memoryManager ? memoryManager.getMemorySummary() : "Chưa có thông tin bộ nhớ.";
         }
 
-        if (lower.includes("tôi tên") || lower.includes("toi ten") || lower.includes("tên của tôi") || lower.includes("tên tôi") || lower.includes("tôi là ai")) {
+        if (lower.includes("tôi tên") || lower.includes("toi ten") || lower.includes("tên của tôi") || lower.includes("tên tôi") || lower.includes("tôi là ai")
+            || lower.includes("nhớ tên") || lower.includes("nho ten") || lower.includes("quên tên") || lower.includes("quen ten")) {
             const name = memoryManager ? memoryManager.memory.name : null;
-            return name ? `😊 Bạn tên là **${name}**! Tôi nhớ rất rõ và không bao giờ quên đâu nhé.`
-                        : `Bạn chưa giới thiệu tên với tôi! Hãy nhắn cho tôi theo dạng: *"Tôi tên là..."* để tôi ghi nhớ nhé.`;
+            return name ? `😊 Tôi nhớ chứ! Bạn tên là **${name}**! Tôi đã lưu chắc chắn trong hồ sơ người dùng rồi nhé.`
+                        : `Dạ hiện tại tôi chưa được bạn giới thiệu tên! 😊\n\nBạn chỉ cần nhắn một câu đơn giản như:\n👉 *"Tôi tên là Bemo"* hoặc *"Tôi tên Minh"*\n\nNgay lập tức tôi sẽ khắc ghi tên bạn vào bộ nhớ và gọi tên bạn trong các câu trả lời tiếp theo!`;
         }
 
         if (lower.includes("tôi bao nhiêu tuổi") || lower.includes("tuổi của tôi") || lower.includes("tôi sinh năm")) {

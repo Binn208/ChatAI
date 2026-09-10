@@ -19,6 +19,7 @@ public class MediaPipeLlmEngine implements LlmInferenceEngine {
     private boolean isLoaded = false;
     private String loadedModelName = "";
     private LlmOptions currentOptions;
+    private Context appContext;
 
     private MediaPipeLlmEngine() {}
 
@@ -31,6 +32,7 @@ public class MediaPipeLlmEngine implements LlmInferenceEngine {
 
     @Override
     public void initialize(Context context, String modelPath, LlmOptions options, InitCallback callback) {
+        this.appContext = (context != null) ? context.getApplicationContext() : null;
         executor.execute(() -> {
             try {
                 // 1. Kiểm tra RAM an toàn trước khi nạp model (OOM Guard)
@@ -67,8 +69,14 @@ public class MediaPipeLlmEngine implements LlmInferenceEngine {
         executor.execute(() -> {
             long startTime = System.currentTimeMillis();
             try {
+                // Tích hợp bộ nhớ dài hạn người dùng vào On-Device LLM
+                com.chatai.adr.repository.UserMemoryManager memory = null;
+                if (appContext != null) {
+                    memory = new com.chatai.adr.repository.UserMemoryManager(appContext);
+                }
+
                 // Tạo câu trả lời thông minh trên máy (Offline On-Device)
-                String fullAnswer = MockAiEngine.generateResponse(prompt, null, null);
+                String fullAnswer = MockAiEngine.generateResponse(prompt, null, memory);
 
                 // Thêm thông số telemetry phần cứng (On-device metrics)
                 String headerInfo = "🔒 **[Private LLM - On-Device Offline]**\n" +

@@ -54,12 +54,13 @@ public class MockAiEngine {
 
         if (lower.contains("tôi tên") || lower.contains("toi ten") || lower.contains("tên của tôi") || lower.contains("ten cua toi")
                 || lower.contains("tên tôi") || lower.contains("ten toi") || lower.contains("tôi là ai") || lower.contains("toi la ai")
-                || lower.contains("tên mình") || lower.contains("ten minh") || lower.contains("tớ tên") || lower.contains("to ten")) {
+                || lower.contains("tên mình") || lower.contains("ten minh") || lower.contains("tớ tên") || lower.contains("to ten")
+                || lower.contains("nhớ tên") || lower.contains("nho ten") || lower.contains("quên tên") || lower.contains("quen ten")) {
             String name = (memory != null) ? memory.getName() : null;
             if (name != null) {
-                return "😊 Bạn tên là **" + name + "**! Tôi nhớ rất rõ và không bao giờ quên đâu nhé.";
+                return "😊 Tôi nhớ chứ! Bạn tên là **" + name + "**! Tôi đã lưu chắc chắn trong hồ sơ người dùng rồi nhé.";
             } else {
-                return "Bạn chưa giới thiệu tên với tôi! Hãy nhắn cho tôi theo dạng: *\"Tôi tên là...\"* hoặc *\"toi ten la...\"* để tôi ghi nhớ nhé.";
+                return "Dạ hiện tại tôi chưa được bạn giới thiệu tên! 😊\n\nBạn chỉ cần nhắn một câu đơn giản như:\n👉 *\"Tôi tên là Bemo\"* hoặc *\"Tôi tên Minh\"*\n\nNgay lập tức tôi sẽ khắc ghi tên bạn vào bộ nhớ và gọi tên bạn trong các câu trả lời tiếp theo!";
             }
         }
 
